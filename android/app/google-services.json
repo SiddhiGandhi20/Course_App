@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "150137341091",
+    "project_id": "courseapp-3416a",
+    "storage_bucket": "courseapp-3416a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150137341091:android:7fce935b00cba009942b16",
+        "android_client_info": {
+          "package_name": "com.example.course_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "150137341091-m81db5b6imbsr571jk5hitasvs4qppup.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKWe2K8EkfIXXVnLOxw9i85MxFycw0DP0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "150137341091-m81db5b6imbsr571jk5hitasvs4qppup.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "150137341091-vfo7o4uaaf7jomcfftojn82ksulhrf2v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.courseApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
