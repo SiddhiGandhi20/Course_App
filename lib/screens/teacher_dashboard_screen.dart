@@ -79,9 +79,10 @@ class TeacherDashboard extends StatelessWidget {
               color: Colors.purple.shade400,
               onTap: () {
                 Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddCourseScreen()),
-                );
+                context,
+                MaterialPageRoute(builder: (context) => const AddCourseScreen()),
+              );
+
               },
             ),
           ],

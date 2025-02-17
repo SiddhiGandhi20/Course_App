@@ -117,7 +117,7 @@ class _CourseFormFieldsState extends State<CourseFormFields> {
           _buildStyledSwitch(widget.isOnlineCourse, "Online Course", "Offline Course", widget.onOnlineToggle),
 
           _buildLabel("Class"),
-          _buildDecorativeDropdown(widget.selectedCategory, ['5th Class', '6th Class', '7th Class'], widget.onCategorySelected),
+          _buildDecorativeDropdown(widget.selectedCategory, ['Select Class','5th Class', '6th Class', '7th Class'], widget.onCategorySelected),
 
           _buildLabel("Duration (hours)"),
           _buildDecorativeTextField(TextEditingController(text: widget.courseDuration), TextInputType.number, widget.onDurationChanged),

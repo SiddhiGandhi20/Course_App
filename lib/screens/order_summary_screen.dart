@@ -12,7 +12,8 @@ class OrderSummaryScreen extends StatefulWidget {
     super.key,
     required this.selectedPlan,
     required this.selectedPrice,
-    required this.course, required double finalPrice,
+    required this.course,
+    required double finalPrice,
   });
 
   @override
@@ -189,6 +190,7 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
             ),
           ),
@@ -222,78 +224,99 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
   }
 
   Widget _buildPaymentButton() {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PaymentScreen(amount: finalPrice, course: widget.course),
+    return Center(
+      child: SizedBox(
+        width: double.infinity, // Makes the button take full width
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PaymentScreen(amount: finalPrice, course: widget.course),
+              ),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            backgroundColor: Colors.blue,
           ),
-        );
-      },
-      child: const Text('Proceed to Payment', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          child: const Text(
+            'Proceed to Payment',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+        ),
+      ),
     );
   }
+
   Widget _infoRow(String label, String value, {bool bold = false, bool highlight = false, Color? color}) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(
-        label,
-        style: TextStyle(
-          fontWeight: (bold || highlight) ? FontWeight.bold : FontWeight.normal,
-          fontSize: 16,
-          color: highlight ? Colors.blue : (color ?? Colors.black),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: (bold || highlight) ? FontWeight.bold : FontWeight.normal,
+            fontSize: 16,
+            color: highlight ? Colors.blue : (color ?? Colors.black),
+          ),
         ),
-      ),
-      Text(
-        value,
-        style: TextStyle(
-          fontWeight: (bold || highlight) ? FontWeight.bold : FontWeight.normal,
-          fontSize: 16,
-          color: highlight ? Colors.blue : (color ?? Colors.black),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: (bold || highlight) ? FontWeight.bold : FontWeight.normal,
+            fontSize: 16,
+            color: highlight ? Colors.blue : (color ?? Colors.black),
+          ),
         ),
-      ),
-    ],
-  );
-}
-Widget _buildCouponList() {
-  return _decorativeCard([
-    const Text('Available Coupons', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-    const SizedBox(height: 8),
-    Column(
-      children: allCoupons
-          .where((coupon) => coupon.isValid) // Show only valid coupons
-          .map(
-            (coupon) => ListTile(
-              title: Text(
-                coupon.code,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text('${coupon.discountPercentage}% OFF'),
-              trailing: ElevatedButton(
-                onPressed: () => _fillCouponField(coupon.code),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ],
+    );
+  }
+
+  Widget _buildCouponList() {
+    return _decorativeCard([
+      const Text('Available Coupons', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      const SizedBox(height: 8),
+      Column(
+        children: allCoupons
+            .where((coupon) => coupon.isValid) // Show only valid coupons
+            .map(
+              (coupon) => ListTile(
+                title: Text(
+                  coupon.code,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                child: const Text('Use', style: TextStyle(color: Colors.white)),
+                subtitle: Text('${coupon.discountPercentage}% OFF'),
+                trailing: ElevatedButton(
+                  onPressed: () => _fillCouponField(coupon.code),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Apply Coupon', style: TextStyle(color: Colors.white)),
+                ),
               ),
-            ),
-          )
-          .toList(),
-    ),
-  ]);
-}
-
-
+            )
+            .toList(),
+      ),
+    ]);
+  }
 
   Widget _decorativeCard(List<Widget> children) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
-      child: Padding(padding: const EdgeInsets.all(16), child: Column(children: children)),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 8, spreadRadius: 2),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
     );
   }
 }
-

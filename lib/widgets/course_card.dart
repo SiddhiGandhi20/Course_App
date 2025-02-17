@@ -30,38 +30,66 @@ class CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      elevation: 10, // Increased elevation for more shadow
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      shadowColor: Colors.black.withOpacity(0.2),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16), // Margin for spacing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           /// 📌 Course Image
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
             child: course.imagePath != null && File(course.imagePath!).existsSync()
-                ? Image.file(File(course.imagePath!), width: double.infinity, height: 120, fit: BoxFit.cover)
-                : Image.asset('assets/course4.jpg', width: double.infinity, height: 120, fit: BoxFit.cover),
+                ? Image.file(File(course.imagePath!), width: double.infinity, height: 180, fit: BoxFit.cover)
+                : Image.asset('assets/course4.jpg', width: double.infinity, height: 180, fit: BoxFit.cover),
           ),
 
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// 📌 Course Title
-                Text(
-                  course.title.isNotEmpty ? course.title : "No Title",
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                /// 📌 Course Title with Gradient Background
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blueAccent, Colors.blue.shade300],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: Text(
+                    course.title.isNotEmpty ? course.title : "No Title",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
 
-                /// 📌 Instructor Name
-                Text(
-                  course.instructor.isNotEmpty ? course.instructor : "Unknown Instructor",
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
+                /// 📌 Instructor Name (styled with a soft color)
+               Row(
+                children: [
+                  /// 📌 Instructor Label
+                  Text(
+                    "Instructor: ",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black.withOpacity(0.6)),
+                  ),
+                  /// 📌 Instructor Name
+                  Text(
+                    course.instructor.isNotEmpty ? course.instructor : "Unknown Instructor",
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+
                 const SizedBox(height: 6),
 
                 /// 📌 Rating & Reviews
@@ -69,7 +97,7 @@ class CourseCard extends StatelessWidget {
                   children: [
                     const Icon(Icons.star, size: 14, color: Colors.orange),
                     const SizedBox(width: 4),
-                    Text('${course.rating}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text('${course.rating}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -80,13 +108,13 @@ class CourseCard extends StatelessWidget {
                   children: [
                     Text(
                       course.price == 0 ? "Free" : "₹${course.price}",
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: course.isOnline ? Colors.green.shade100 : Colors.orange.shade100,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         course.isOnline ? "Online" : "Offline",
@@ -95,7 +123,7 @@ class CourseCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
 
                 /// 📌 Buttons: Explore & Buy Now
                 Row(
@@ -106,9 +134,10 @@ class CourseCard extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () => _onExplore(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          backgroundColor: Colors.blueAccent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 5,
                         ),
                         child: const Text("Explore", style: TextStyle(color: Colors.white)),
                       ),
@@ -122,18 +151,18 @@ class CourseCard extends StatelessWidget {
                           // Navigate to CoursePricingScreen
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => CoursePricingScreen(course: course,)),
+                            MaterialPageRoute(builder: (context) => CoursePricingScreen(course: course)),
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 74, 160, 235),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          backgroundColor: Colors.blue.shade700,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 5,
                         ),
                         child: const Text("Buy Now", style: TextStyle(color: Colors.white)),
                       ),
                     ),
-
                   ],
                 ),
               ],

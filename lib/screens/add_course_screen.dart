@@ -11,7 +11,9 @@ import '../widgets/course_form_fields.dart';
 import '../widgets/video_picker.dart'; // Import Video Picker
 
 class AddCourseScreen extends StatefulWidget {
-  const AddCourseScreen({super.key});
+  final Course? course; // Make the course parameter nullable
+
+  const AddCourseScreen({super.key, this.course}); // Allow null or pass a course
 
   @override
   _AddCourseScreenState createState() => _AddCourseScreenState();
@@ -34,14 +36,34 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   String? selectedImagePath;
   List<String> selectedVideoPaths = [];
   List<String> selectedNotesPaths = [];
-  String selectedCategory = '5th';
+  String selectedCategory = 'Select Class';
   String selectedLanguage = 'English';
   String selectedRating = '5';
   List<String> learningPoints = [
-  'Learn Flutter widgets',
-  'Build responsive UIs',
-  'Understand state management',
-];
+    'Olympiad',
+    'Scholarships',
+    'Manthan',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // If a course is passed, pre-fill the fields with its data
+    if (widget.course != null) {
+      _titleController.text = widget.course!.title;
+      _instructorController.text = widget.course!.instructor;
+      _descriptionController.text = widget.course!.description;
+      _durationController.text = widget.course!.duration;
+      _priceController.text = widget.course!.price.toString();
+      selectedCategory = widget.course!.category;
+      selectedLanguage = widget.course!.language;
+      selectedImagePath = widget.course!.imagePath;
+      selectedVideoPaths = widget.course!.videoPaths;
+      selectedNotesPaths = widget.course!.notesPaths;
+      tags = widget.course!.tags;
+    }
+  }
 
   // Function to Pick Course Notes from Local Storage
   Future<void> _pickNotes() async {
@@ -106,28 +128,33 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         return;
       }
 
-   // Assuming you have necessary values from user input, here's how you'd create a course
-
+      // Assuming you have necessary values from user input, here's how you'd create a course
       final course = Course(
-        title: title, // String: Title of the course
-        instructor: instructor, // String: Name of the instructor
-        description: description, // String: Description of the course
-        category: selectedCategory, // String: Selected category (e.g., "Programming")
-        language: selectedLanguage, // String: Language of the course (e.g., "English")
-        duration: courseDuration, // String: Duration (e.g., "3 hours")
-        price: double.parse(coursePrice), // double: Price, convert from String to double
-        isPrivate: isPrivateCourse, // bool: Whether the course is private or public
-        hasCertificate: certificateAvailable, // bool: Whether certificate is included
-        isOnline: isOnlineCourse, // bool: Whether the course is online
-        rating: double.parse(selectedRating), // double: Rating, convert from String to double
-        tags: tags, // List<String>: Tags for the course (e.g., ["Flutter", "Dart"])
-        imagePath: selectedImagePath, // String: Path to the course image (optional)
-        videoPaths: selectedVideoPaths, // List<String>: List of video file paths
-        notesPaths: selectedNotesPaths, // List<String>: List of course notes file paths
-        learningPoints: learningPoints, // List<String>: Key learning points
+        title: title,
+        instructor: instructor,
+        description: description,
+        category: selectedCategory,
+        language: selectedLanguage,
+        duration: courseDuration,
+        price: double.parse(coursePrice),
+        isPrivate: isPrivateCourse,
+        hasCertificate: certificateAvailable,
+        isOnline: isOnlineCourse,
+        rating: double.parse(selectedRating),
+        tags: tags,
+        imagePath: selectedImagePath,
+        videoPaths: selectedVideoPaths,
+        notesPaths: selectedNotesPaths,
+        learningPoints: learningPoints,
       );
 
-      Provider.of<CourseProvider>(context, listen: false).addCourse(course);
+      // If the course is being updated, you might want to update instead of adding
+      if (widget.course != null) {
+        Provider.of<CourseProvider>(context, listen: false).updateCourse(course);
+      } else {
+        Provider.of<CourseProvider>(context, listen: false).addCourse(course);
+      }
+
       Navigator.pop(context);
     }
   }
@@ -164,7 +191,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 70),
-
                 CourseImagePicker(
                   onImageSelected: (path) {
                     setState(() {
@@ -172,9 +198,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                     });
                   },
                 ).animate().fade(duration: 500.ms).slideY(begin: 0.3, end: 0.0),
-
                 const SizedBox(height: 20),
-
                 VideoPicker(
                   onVideosSelected: (paths) {
                     setState(() {
@@ -182,12 +206,9 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                     });
                   },
                 ).animate().fade(duration: 500.ms).slideY(begin: 0.3, end: 0.0),
-
                 const SizedBox(height: 20),
-
-                // Button to Pick Notes
                 ElevatedButton.icon(
-                  onPressed: _pickNotes, // Opens local storage
+                  onPressed: _pickNotes,
                   icon: const Icon(Icons.note_add),
                   label: const Text("Add Course Notes"),
                   style: ElevatedButton.styleFrom(
@@ -195,8 +216,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                     foregroundColor: Colors.white,
                   ),
                 ),
-
-                // Display Selected Notes
                 if (selectedNotesPaths.isNotEmpty)
                   Column(
                     children: selectedNotesPaths
@@ -217,7 +236,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                             ))
                         .toList(),
                   ),
-
                 const SizedBox(height: 20),
                 CourseFormFields(
                   titleController: _titleController,
@@ -246,15 +264,13 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   onPriceChanged: (price) => setState(() => _priceController.text = price),
                   onInstructorChanged: (instructor) => setState(() => _instructorController.text = instructor),
                   onRatingSelected: (rating) => setState(() => selectedRating = rating),
-                  selectedVideoPaths: selectedVideoPaths, // Pass selected videos
-                  selectedNotesPaths: selectedNotesPaths, // Pass selected notes
-                  learningPoints: learningPoints, // Pass learning points
-                  onLearningPointAdded: (point) => setState(() => learningPoints.add(point)), // Handle adding points
-                  onLearningPointRemoved: (point) => setState(() => learningPoints.remove(point)), // Handle removing points
+                  selectedVideoPaths: selectedVideoPaths,
+                  selectedNotesPaths: selectedNotesPaths,
+                  learningPoints: learningPoints,
+                  onLearningPointAdded: (point) => setState(() => learningPoints.add(point)),
+                  onLearningPointRemoved: (point) => setState(() => learningPoints.remove(point)),
                 ).animate().fade(duration: 600.ms).slideY(begin: 0.2, end: 0.0),
                 const SizedBox(height: 24),
-
-
                 Center(
                   child: SizedBox(
                     width: 200,
@@ -274,8 +290,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ).animate().fade(duration: 700.ms).scale(begin: Offset(0.8, 0.8), end: Offset(1.0, 1.0)),
-                  )
-                )
+                  ),
+                ),
               ],
             ),
           ),

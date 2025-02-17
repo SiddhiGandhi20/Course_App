@@ -8,42 +8,35 @@ class CourseProvider with ChangeNotifier {
   List<Course> get courses => _courses;
   List<Course> get myCourses => _myCourses;
 
-  // Add a new course if it doesn't already exist
- void addCourse(Course course) {
-  if (!_courses.contains(course)) { // Prevent duplicates
-    _courses.add(course);
+  // ✅ Add a new course
+  void addCourse(Course course) {
+    if (!_courses.contains(course)) { // Prevent duplicates
+      _courses.add(course);
+      debugPrint("Course Added: ${course.title}, Category: ${course.category}");
+      notifyListeners();
+    }
+  }
+
+  // ✅ Get courses by class name
+  List<Course> getCoursesByClass(String className) {
+    List<Course> filteredCourses =
+        _courses.where((course) => course.category.trim().toLowerCase() == className.trim().toLowerCase()).toList();
+    
+    debugPrint("Courses for $className: ${filteredCourses.map((c) => c.title).toList()}");
+    
+    return filteredCourses;
+  }
+  void removeCourse(String title) {
+    _courses.removeWhere((course) => course.title == title);
     notifyListeners();
   }
-}
 
-
-  // Update a course by index
-  void updateCourse(int index, Course updatedCourse) {
-    if (index >= 0 && index < _courses.length) {
+  // Update an existing course based on title
+  void updateCourse(Course updatedCourse) {
+    final index = _courses.indexWhere((course) => course.title == updatedCourse.title);
+    if (index != -1) {
       _courses[index] = updatedCourse;
       notifyListeners();
     }
-  }
-
-  // Remove a course by index
-  void removeCourse(int index) {
-    if (index >= 0 && index < _courses.length) {
-      _courses.removeAt(index);
-      notifyListeners();
-    }
-  }
-
-  // Add course to "My Courses" if not already added
-  void addToMyCourses(Course course) {
-    if (!_courses.contains(course)) { // Prevent duplicates
-    _courses.add(course);
-    notifyListeners();
-  }
-  }
-
-  // Remove a course from "My Courses"
-  void removeFromMyCourses(Course course) {
-    _myCourses.remove(course);
-    notifyListeners();
   }
 }
