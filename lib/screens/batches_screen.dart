@@ -1,94 +1,94 @@
 import 'package:flutter/material.dart';
 import '../models/batch.dart';
-import 'add_batches_screen.dart';
+import '../widgets/batch_card.dart';
+import '../widgets/bottom_nav.dart';
 
 class BatchesScreen extends StatefulWidget {
-  const BatchesScreen({super.key});
+  final String category;
+
+  const BatchesScreen({super.key, required this.category});
 
   @override
   _BatchesScreenState createState() => _BatchesScreenState();
 }
 
 class _BatchesScreenState extends State<BatchesScreen> {
-  List<Batch> batches = [];
-  String? selectedCategory;
+  List<Batch> batches = [
+    Batch(title: "Math Batch 1", category: "5th Class", instructor: "Instructor A", timing: "9:00 AM - 11:00 AM", date: "2025-02-18", price: "500"),
+    Batch(title: "Science Batch 1", category: "6th Class", instructor: "Instructor B", timing: "11:00 AM - 1:00 PM", date: "2025-02-19", price: "600"),
+    Batch(title: "History Batch 1", category: "7th Class", instructor: "Instructor C", timing: "2:00 PM - 4:00 PM", date: "2025-02-20", price: "550"),
+    // Add more batches as necessary
+  ];
 
-  // Add a new batch to the list
-  void _addBatch(Batch batch) {
-    setState(() {
-      batches.add(batch);
-    });
+  List<Batch> get filteredBatches {
+    return batches.where((batch) => batch.category == widget.category).toList();
   }
 
-  // Filter batches based on selected category
-  List<Batch> get filteredBatches {
-    if (selectedCategory == null || selectedCategory!.isEmpty) {
-      return batches;
-    }
-    return batches.where((batch) => batch.category == selectedCategory).toList();
+  int _selectedTab = 0;
+  int _selectedIndex = 0; // Track bottom navigation index
+
+  void _onItemSelected(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Batches'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Batches for ${widget.category}',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Colors.blueAccent,
+        elevation: 8,
+        shadowColor: Colors.blue.withOpacity(0.5),
+        centerTitle: true,
       ),
-      body: Column(
-        children: [
-          // Filter Dropdown
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: DropdownButton<String>(
-              hint: const Text('Select Category'),
-              value: selectedCategory,
-              items: ['11', '12-PCM', '12-PCB', 'NEET']
-                  .map((category) => DropdownMenuItem(
-                        value: category,
-                        child: Text(category),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCategory = value;
-                });
-              },
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade100, Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-
-          // Display Batches
-          Expanded(
-            child: ListView.builder(
-              itemCount: filteredBatches.length,
-              itemBuilder: (context, index) {
-                final batch = filteredBatches[index];
-                return ListTile(
-                  title: Text(batch.title),
-                  subtitle: Text(batch.category),
-                  trailing: Text('\$${batch.price}'),
-                  onTap: () {
-                    // Handle batch tap if needed
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+        ),
+        child: filteredBatches.isEmpty
+            ? Center(
+                child: Text(
+                  'No batches available',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.blueGrey),
+                ),
+              )
+            : ListView.builder(
+                padding: EdgeInsets.all(16),
+                itemCount: filteredBatches.length,
+                itemBuilder: (context, index) {
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          spreadRadius: 1,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: BatchCard(batch: filteredBatches[index]),
+                  );
+                },
+              ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to AddBatchesScreen
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddBatchesScreen(onAddBatch: _addBatch),
-            ),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
+      // bottomNavigationBar: BottomNavBar(
+      //   selectedIndex: _selectedIndex,
+      //   onItemSelected: _onItemSelected,
+      //   selectedCategory: widget.category, // Pass class name dynamically
+      // ),
     );
   }
 }

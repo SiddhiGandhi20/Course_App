@@ -15,7 +15,7 @@ class TeacherDashboard extends StatelessWidget {
 
   void _addBatch(Batch batch) {
     // Handle the added batch data here (e.g., save to the provider or database)
-    print('Batch added: ${batch.title}, ${batch.category}, ${batch.startDate}');
+    print('Batch added: ${batch.title}, ${batch.category}, ${batch.date}');
   }
 
   @override

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/course.dart';
+import '../models/batch.dart';
 
 class BatchCard extends StatelessWidget {
-  final Course course;
+  final Batch batch;
 
-  const BatchCard({super.key, required this.course});
+  const BatchCard({super.key, required this.batch});
 
   @override
   Widget build(BuildContext context) {
@@ -20,30 +20,27 @@ class BatchCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Title
-            Text(course.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(batch.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
 
-            // Duration
-            Text(course.duration, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-            const SizedBox(height: 16),
+            // Instructor
+            Text('Instructor: ${batch.instructor}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            const SizedBox(height: 8),
 
-            // Start Date
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(course.learningPoints.isNotEmpty ? course.learningPoints[0] : 'No start date', style: const TextStyle(fontSize: 14, color: Colors.grey)),
-              ],
-            ),
-            const SizedBox(height: 16),
+            // Timing
+            Text('Timing: ${batch.timing}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            const SizedBox(height: 8),
 
-            // Image
-            Image.network(
-              course.imagePath ?? 'https://via.placeholder.com/150',  // fallback if no image is set
-              height: 100,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            // Date
+            Text('Date: ${batch.date}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            const SizedBox(height: 8),
+
+            // Category
+            Text('Category: ${batch.category}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            const SizedBox(height: 8),
+
+            // Price
+            Text('Price: ${batch.price}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
       ),

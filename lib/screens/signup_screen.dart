@@ -1,8 +1,10 @@
+import 'package:course_app/screens/class_selection_page.dart';
 import 'package:flutter/material.dart';
 import '../styles/signup.dart'; // Import styles
 import '../widgets/custom_widgets.dart'; // Import widgets
-import '../screens/courses_screen.dart';
-import '../screens/teacher_dashboard_screen.dart'; // Import Teacher Dashboard screen
+// import '../screens/courses_screen.dart';
+import '../screens/teacher_dashboard_screen.dart';
+ // Import Teacher Dashboard screen
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -134,7 +136,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           // ✅ Navigate to Courses Screen for other roles
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const CoursesScreen()),
+                            MaterialPageRoute(builder: (context) => const ClassSelectionPage()),
                           );
                         }
                       },

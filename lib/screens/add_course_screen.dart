@@ -145,7 +145,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         imagePath: selectedImagePath,
         videoPaths: selectedVideoPaths,
         notesPaths: selectedNotesPaths,
-        learningPoints: learningPoints,
+        learningPoints: learningPoints, timing: null, date: null,
       );
 
       // If the course is being updated, you might want to update instead of adding
@@ -262,6 +262,11 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   onLanguageSelected: (language) => setState(() => selectedLanguage = language),
                   onDurationChanged: (duration) => setState(() => _durationController.text = duration),
                   onPriceChanged: (price) => setState(() => _priceController.text = price),
+                  onTitleChanged: (value) {
+                    setState(() {
+                      _titleController.text = value;
+                    });
+                  },
                   onInstructorChanged: (instructor) => setState(() => _instructorController.text = instructor),
                   onRatingSelected: (rating) => setState(() => selectedRating = rating),
                   selectedVideoPaths: selectedVideoPaths,

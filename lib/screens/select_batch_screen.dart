@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/course.dart';
-import '../widgets/batch_card.dart';
+import '../models/batch.dart'; // Import the Batch model
+import '../widgets/batch_card.dart'; // Import the BatchCard widget
 
 class SelectBatchScreen extends StatefulWidget {
   const SelectBatchScreen({super.key});
@@ -12,88 +12,38 @@ class SelectBatchScreen extends StatefulWidget {
 class _SelectBatchScreenState extends State<SelectBatchScreen> {
   String? selectedBoard;
 
-  final List<String> boards = ['11', '12-PCB', '12-PCB-CBSE', 'NEET'];
+  // final List<String> boards = ['5th Class', '6th Class', '7th Class'];
 
-  final Map<String, List<Map<String, dynamic>>> boardBatches = {
-    '11': [
-      {
-        'title': '11 Batch',
-        'instructor': 'Dr. Rajesh Kumar',
-        'description': 'Mechanical Engineering',
-        'category': '11',
-        'language': 'English',
-        'duration': '12 weeks left',
-        'price': 1000.0,
-        'isPrivate': false,
-        'hasCertificate': true,
-        'isOnline': true,
-        'rating': 4.5,
-        'tags': ['Engineering', 'GATE'],
-        'imagePath': 'https://via.placeholder.com/150',
-        'videoPaths': [],
-        'notesPaths': [],
-        'learningPoints': ['Introduction to Mechanics'],
-      },
+  final Map<String, List<Batch>> boardBatches = {
+    '5th Class': [
+      Batch(
+        title: '5th Grade Science Batch',
+        instructor: 'Mrs. Priya Singh',
+        timing: '10:00 AM to 12:00 PM',
+        date: 'Monday, Wednesday, Friday',
+        price: '5000',
+        category: '5th Class'
+      ),
     ],
-    '12-PCB': [
-      {
-        'title': 'KVS TGT-PGT Batch',
-        'instructor': 'Prof. Anjali Verma',
-        'description': 'General Awareness • Pedagogy',
-        'category': '12-PCB',
-        'language': 'English',
-        'duration': '10 weeks left',
-        'price': 1200.0,
-        'isPrivate': false,
-        'hasCertificate': true,
-        'isOnline': true,
-        'rating': 4.8,
-        'tags': ['Education', 'Teaching'],
-        'imagePath': 'https://via.placeholder.com/150',
-        'videoPaths': [],
-        'notesPaths': [],
-        'learningPoints': ['Teaching Methodologies'],
-      },
+    '6th Class': [
+      Batch(
+        title: '6th Grade Math Batch',
+        instructor: 'Mr. Ravi Kumar',
+        timing: '1:00 PM to 3:00 PM',
+        date: 'Tuesday, Thursday',
+         price: '5000',
+        category: '6th Class'
+      ),
     ],
-    '12-PCB-CBSE': [
-      {
-        'title': 'PCM IIT-JEE Batch',
-        'instructor': 'Dr. Amit Sharma',
-        'description': 'Physics • Chemistry • Math',
-        'category': '12-PCB-CBSE',
-        'language': 'English',
-        'duration': '15 weeks left',
-        'price': 1500.0,
-        'isPrivate': false,
-        'hasCertificate': true,
-        'isOnline': true,
-        'rating': 4.7,
-        'tags': ['IIT-JEE', 'Engineering'],
-        'imagePath': 'https://via.placeholder.com/150',
-        'videoPaths': [],
-        'notesPaths': [],
-        'learningPoints': ['Introduction to Physics'],
-      },
-    ],
-    'NEET': [
-      {
-        'title': 'Medical Preparation Batch',
-        'instructor': 'Dr. James Matt',
-        'description': 'Physics • Chemistry • Biology',
-        'category': 'NEET',
-        'language': 'English',
-        'duration': '5 weeks left',
-        'price': 800.0,
-        'isPrivate': false,
-        'hasCertificate': true,
-        'isOnline': true,
-        'rating': 4.6,
-        'tags': ['NEET', 'Medical'],
-        'imagePath': 'https://via.placeholder.com/150',
-        'videoPaths': [],
-        'notesPaths': [],
-        'learningPoints': ['Medical Terminology'],
-      },
+    '7th Class': [
+      Batch(
+        title: '7th Grade History Batch',
+        instructor: 'Dr. Suresh Verma',
+        timing: '3:00 PM to 5:00 PM',
+        date: 'Monday, Wednesday',
+         price: '5000',
+        category: '7th Class'
+      ),
     ],
   };
 
@@ -109,7 +59,7 @@ class _SelectBatchScreenState extends State<SelectBatchScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Select Your Batch',
+          'Select Your Class',
           style: TextStyle(
             color: Colors.black,
             fontSize: 18,
@@ -121,25 +71,25 @@ class _SelectBatchScreenState extends State<SelectBatchScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: DropdownButtonFormField<String>(
-              value: selectedBoard,
-              hint: const Text('Select a Board'),
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              items: boards.map((board) {
-                return DropdownMenuItem<String>(
-                  value: board,
-                  child: Text(board),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedBoard = value;
-                });
-              },
-            ),
+            // child: DropdownButtonFormField<String>(
+            //   value: selectedBoard,
+            //   hint: const Text('Select a Grade'),
+            //   decoration: InputDecoration(
+            //     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            //     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            //   ),
+            //   items: boards.map((board) {
+            //     return DropdownMenuItem<String>(
+            //       value: board,
+            //       child: Text(board),
+            //     );
+            //   }).toList(),
+            //   onChanged: (value) {
+            //     setState(() {
+            //       selectedBoard = value;
+            //     });
+            //   },
+            // ),
           ),
 
           // Only display batches if a board is selected
@@ -150,26 +100,8 @@ class _SelectBatchScreenState extends State<SelectBatchScreen> {
                 itemCount: boardBatches[selectedBoard]!.length,
                 itemBuilder: (context, index) {
                   final batch = boardBatches[selectedBoard]![index];
-                  final course = Course(
-                    title: batch['title'],
-                    instructor: batch['instructor'],
-                    description: batch['description'],
-                    category: batch['category'],
-                    language: batch['language'],
-                    duration: batch['duration'],
-                    price: batch['price'],
-                    isPrivate: batch['isPrivate'],
-                    hasCertificate: batch['hasCertificate'],
-                    isOnline: batch['isOnline'],
-                    rating: batch['rating'],
-                    tags: List<String>.from(batch['tags']),
-                    imagePath: batch['imagePath'],
-                    videoPaths: List<String>.from(batch['videoPaths']),
-                    notesPaths: List<String>.from(batch['notesPaths']),
-                    learningPoints: List<String>.from(batch['learningPoints']),
-                  );
-                  // Pass the course to BatchCard
-                  return BatchCard(course: course);
+                  // Pass the batch to BatchCard widget
+                  return BatchCard(batch: batch);
                 },
               ),
             ),
@@ -178,7 +110,7 @@ class _SelectBatchScreenState extends State<SelectBatchScreen> {
           if (selectedBoard == null)
             const Expanded(
               child: Center(
-                child: Text('Select a board to see available batches'),
+                child: Text('Select a grade to see available batches'),
               ),
             ),
         ],

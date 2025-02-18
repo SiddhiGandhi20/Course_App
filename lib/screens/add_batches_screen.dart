@@ -55,10 +55,11 @@ class _AddBatchesScreenState extends State<AddBatchesScreen> {
       // Creating the batch object
       final newBatch = Batch(
         title: title,
+        instructor: 'Instructor Name',  // Placeholder for the instructor name
+        timing: '9:00 AM to 11:00 AM',  // Placeholder for the timing
+        date: startDate,  // Using the startDate for batch date
         category: category,
-        startDate: startDate,
-        duration: duration,
-        price: price,
+        price: price.toString(),  // Converting the price to a string
       );
 
       // Add batch and return to the previous screen
@@ -158,10 +159,9 @@ class _AddBatchesScreenState extends State<AddBatchesScreen> {
                         });
                       },
                       items: [
-                        '11th',
-                        '12-PCM',
-                        '12-PCB',
-                        'NEET'
+                        '5th Class',
+                        '6th Class',
+                        '7th Class'
                       ].map((category) {
                         return DropdownMenuItem(
                           value: category,

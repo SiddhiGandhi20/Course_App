@@ -37,6 +37,6 @@ class Course {
     this.imagePath,
     this.videoPaths = const [],
     this.notesPaths = const [],
-    required this.learningPoints,
+    required this.learningPoints, required timing, required date,
   });
 }

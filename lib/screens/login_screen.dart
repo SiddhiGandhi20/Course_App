@@ -2,7 +2,6 @@ import 'package:course_app/screens/class_selection_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../screens/teacher_dashboard_screen.dart';
-import '../screens/courses_screen.dart';
 // import '../screens/my_courses_dashboard.dart';
 import '../screens/parents_dashboard_screen.dart';
 
