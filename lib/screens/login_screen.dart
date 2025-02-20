@@ -1,13 +1,13 @@
-import 'package:course_app/screens/class_selection_page.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:http/http.dart' as http;
+import '../screens/class_selection_page.dart';
 import '../screens/teacher_dashboard_screen.dart';
-// import '../screens/my_courses_dashboard.dart';
 import '../screens/parents_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  final String role;
-  
+  final String role; // Role should be "Teacher", "Student", or "Parent"
+
   const LoginScreen({super.key, required this.role});
 
   @override
@@ -18,11 +18,11 @@ class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -33,11 +33,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-
-    _slideAnimation = Tween<Offset>(begin: Offset(0, 0.5), end: Offset.zero)
-        .animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
 
@@ -52,66 +47,65 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  void _handleLogin() {
-    Widget nextScreen;
-    if (widget.role == "Login as Teacher") {
-      nextScreen = TeacherDashboard();
-    } else if (widget.role == "Login as Student") {
-      nextScreen = ClassSelectionPage();
-    } else {
-      nextScreen = ParentsDashboardScreen();
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final String apiUrl = 'http://127.0.0.1:5000/api/register'; // Use correct server IP if testing on a physical device
+
+    final Map<String, dynamic> requestData = {
+      "full_name": _nameController.text.trim(),
+      "mobile_number": _phoneController.text.trim(),
+      "role": widget.role // Correct role format
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestData),
+      );
+
+      if (response.statusCode == 201) {
+        // Navigate to the correct screen based on role
+        Widget nextScreen;
+        if (widget.role == "Teacher") {
+          nextScreen = TeacherDashboard();
+        } else if (widget.role == "Student") {
+          nextScreen = ClassSelectionPage();
+        } else {
+          nextScreen = ParentsDashboardScreen();
+        }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => nextScreen),
+        );
+      } else {
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
+        _showErrorDialog(responseBody["error"] ?? "Registration failed");
+      }
+    } catch (error) {
+      _showErrorDialog("Failed to connect to server. Please try again.");
+    } finally {
+      setState(() => _isLoading = false);
     }
-    
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => nextScreen),
-    );
   }
 
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: Colors.white70)),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Or continue with',
-            style: TextStyle(color: Colors.white70),
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Error"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("OK"),
           ),
-        ),
-        Expanded(child: Divider(color: Colors.white70)),
-      ],
-    );
-  }
-
- Widget _buildPhoneInput() {
-    return _buildAnimatedTextField(
-      controller: _phoneController,
-      label: 'Phone Number',
-      icon: Icons.phone,
-    );
-  }
-
-  Widget _buildSocialButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildSocialButton(icon: Icons.g_mobiledata, label: 'Google'),
-        _buildSocialButton(icon: Icons.apple, label: 'Apple'),
-      ],
-    );
-  }
-
-  Widget _buildSocialButton({required IconData icon, required String label}) {
-    return ElevatedButton.icon(
-      onPressed: () {},
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Color(0xFF5C6BC0),
-        side: BorderSide(color: Color(0xFF3949AB)),
+        ],
       ),
-      icon: Icon(icon, size: 24),
-      label: Text(label),
     );
   }
 
@@ -141,11 +135,7 @@ class _LoginScreenState extends State<LoginScreen>
                         opacity: _fadeAnimation,
                         child: Column(
                           children: [
-                            Icon(Icons.school, size: 50, color: Color(0xFF1A237E))
-                                .animate()
-                                .scale(duration: 1000.ms)
-                                .then()
-                                .shake(duration: 500.ms),
+                            Icon(Icons.school, size: 50, color: Color(0xFF1A237E)),
                             SizedBox(height: 16),
                             Text(
                               'EduConnect',
@@ -154,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF1A237E),
                               ),
-                            ).animate().fade(duration: 600.ms).slide(),
+                            ),
                             SizedBox(height: 10),
                             Text(
                               'Welcome Back!',
@@ -163,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 fontWeight: FontWeight.w500,
                                 color: Colors.white,
                               ),
-                            ).animate().fade(duration: 1700.ms).slide(),
+                            ),
                           ],
                         ),
                       ),
@@ -172,21 +162,18 @@ class _LoginScreenState extends State<LoginScreen>
                         controller: _nameController,
                         label: 'Full Name',
                         icon: Icons.person,
-                      ).animate().fade(duration: 800.ms).slide(),
+                      ),
                       SizedBox(height: 20),
-                      _buildPhoneInput().animate().fade(duration: 900.ms).slide(),
+                      _buildAnimatedTextField(
+                        controller: _phoneController,
+                        label: 'Phone Number',
+                        icon: Icons.phone,
+                        keyboardType: TextInputType.phone,
+                      ),
                       SizedBox(height: 32),
-                      _buildContinueButton()
-                          .animate()
-                          .fade(duration: 1000.ms)
-                          .slide(),
-                      SizedBox(height: 24),
-                      _buildDivider().animate().fade(duration: 1100.ms).slide(),
-                      SizedBox(height: 24),
-                      _buildSocialButtons()
-                          .animate()
-                          .fade(duration: 1200.ms)
-                          .slide(),
+                      _isLoading
+                          ? CircularProgressIndicator()
+                          : _buildContinueButton(),
                     ],
                   ),
                 ),
@@ -222,9 +209,11 @@ class _LoginScreenState extends State<LoginScreen>
     required TextEditingController controller,
     required String label,
     required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
   }) {
     return TextFormField(
       controller: controller,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: Colors.white),

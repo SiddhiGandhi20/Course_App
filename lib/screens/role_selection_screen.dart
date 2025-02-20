@@ -8,7 +8,8 @@ class RoleSelectionScreen extends StatefulWidget {
   _RoleSelectionScreenState createState() => _RoleSelectionScreenState();
 }
 
-class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTickerProviderStateMixin {
+class _RoleSelectionScreenState extends State<RoleSelectionScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late List<Animation<Offset>> _slideAnimations;
 
@@ -52,6 +53,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
     required IconData icon,
     required Animation<Offset> animation,
     required Color color,
+    required String role,
   }) {
     return SlideTransition(
       position: animation,
@@ -64,7 +66,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LoginScreen(role: title),
+                  builder: (context) => LoginScreen(role: role),
                 ),
               );
             },
@@ -163,7 +165,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                           Icon(
                             Icons.school,
                             size: 40,
-                            color:  Color(0xFF1A237E),
+                            color: Color(0xFF1A237E),
                           ),
                           SizedBox(width: 8),
                           Text(
@@ -171,7 +173,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                             style: TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
-                              color:  Color(0xFF1A237E),
+                              color: Color(0xFF1A237E),
                             ),
                           ),
                         ],
@@ -184,7 +186,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color:  Color(0xFF1A237E),
+                        color: Color(0xFF1A237E),
                       ),
                     ),
                     SizedBox(height: 8),
@@ -206,6 +208,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                   children: [
                     _buildRoleCard(
                       title: 'Login as Teacher',
+                      role: 'Teacher',
                       subtitle: 'For educators and instructors',
                       icon: Icons.school,
                       animation: _slideAnimations[0],
@@ -213,6 +216,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                     ),
                     _buildRoleCard(
                       title: 'Login as Student',
+                      role: 'Student',
                       subtitle: 'For learners and students',
                       icon: Icons.person,
                       animation: _slideAnimations[1],
@@ -220,6 +224,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                     ),
                     _buildRoleCard(
                       title: 'Login as Parent',
+                      role: 'Parent',
                       subtitle: 'For parents and guardians',
                       icon: Icons.people,
                       animation: _slideAnimations[2],
