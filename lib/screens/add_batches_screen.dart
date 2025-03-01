@@ -59,7 +59,7 @@ class _AddBatchesScreenState extends State<AddBatchesScreen> {
         timing: '9:00 AM to 11:00 AM',  // Placeholder for the timing
         date: startDate,  // Using the startDate for batch date
         category: category,
-        price: price.toString(),  // Converting the price to a string
+        price: price.toString(), duration: '',  // Converting the price to a string
       );
 
       // Add batch and return to the previous screen

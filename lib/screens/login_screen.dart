@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../screens/class_selection_page.dart';
 import '../screens/teacher_dashboard_screen.dart';
 import '../screens/parents_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  final String role; // Role should be "Teacher", "Student", or "Parent"
+  final String role;
 
   const LoginScreen({super.key, required this.role});
 
@@ -28,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 2500),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
@@ -52,12 +53,12 @@ class _LoginScreenState extends State<LoginScreen>
 
     setState(() => _isLoading = true);
 
-    final String apiUrl = 'http://127.0.0.1:5000/api/register'; // Use correct server IP if testing on a physical device
+    final String apiUrl = 'http://192.168.29.33:5000/api/register';
 
     final Map<String, dynamic> requestData = {
       "full_name": _nameController.text.trim(),
       "mobile_number": _phoneController.text.trim(),
-      "role": widget.role // Correct role format
+      "role": widget.role
     };
 
     try {
@@ -68,7 +69,12 @@ class _LoginScreenState extends State<LoginScreen>
       );
 
       if (response.statusCode == 201) {
-        // Navigate to the correct screen based on role
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString("full_name", _nameController.text.trim());
+        await prefs.setString("mobile_number", _phoneController.text.trim());
+        await prefs.setString("role", widget.role);
+        await prefs.setBool("is_logged_in", true);
+
         Widget nextScreen;
         if (widget.role == "Teacher") {
           nextScreen = TeacherDashboard();
@@ -84,10 +90,10 @@ class _LoginScreenState extends State<LoginScreen>
         );
       } else {
         final Map<String, dynamic> responseBody = jsonDecode(response.body);
-        _showErrorDialog(responseBody["error"] ?? "Registration failed");
+        _showErrorDialog(responseBody["error"] ?? "Login failed. Please try again.");
       }
     } catch (error) {
-      _showErrorDialog("Failed to connect to server. Please try again.");
+      _showErrorDialog("Failed to connect to server. Please check your network.");
     } finally {
       setState(() => _isLoading = false);
     }
@@ -97,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Error"),
+        title: Text("Error", style: TextStyle(color: Colors.red)),
         content: Text(message),
         actions: [
           TextButton(
@@ -116,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen>
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFBBDEFB), Color.fromARGB(255, 44, 55, 176)],
+              colors: [Color(0xFFBBDEFB), Color(0xFF1A237E)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -130,19 +136,19 @@ class _LoginScreenState extends State<LoginScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(height: 120),
+                      SizedBox(height: 100),
                       FadeTransition(
                         opacity: _fadeAnimation,
                         child: Column(
                           children: [
-                            Icon(Icons.school, size: 50, color: Color(0xFF1A237E)),
+                            Icon(Icons.school, size: 60, color: Colors.white),
                             SizedBox(height: 16),
                             Text(
                               'EduConnect',
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1A237E),
+                                color: Colors.white,
                               ),
                             ),
                             SizedBox(height: 10),
@@ -151,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen>
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white,
+                                color: Colors.white70,
                               ),
                             ),
                           ],
@@ -162,6 +168,12 @@ class _LoginScreenState extends State<LoginScreen>
                         controller: _nameController,
                         label: 'Full Name',
                         icon: Icons.person,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter your full name";
+                          }
+                          return null;
+                        },
                       ),
                       SizedBox(height: 20),
                       _buildAnimatedTextField(
@@ -169,6 +181,14 @@ class _LoginScreenState extends State<LoginScreen>
                         label: 'Phone Number',
                         icon: Icons.phone,
                         keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter your phone number";
+                          } else if (!RegExp(r"^\d{10}$").hasMatch(value)) {
+                            return "Enter a valid 10-digit number";
+                          }
+                          return null;
+                        },
                       ),
                       SizedBox(height: 32),
                       _isLoading
@@ -188,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildContinueButton() {
     return SizedBox(
       width: double.infinity,
-      height: 60,
+      height: 55,
       child: ElevatedButton(
         onPressed: _handleLogin,
         style: ElevatedButton.styleFrom(
@@ -196,6 +216,7 @@ class _LoginScreenState extends State<LoginScreen>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          elevation: 5,
         ),
         child: Text(
           'Continue',
@@ -210,17 +231,27 @@ class _LoginScreenState extends State<LoginScreen>
     required String label,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      validator: validator,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.white),
-        prefixIcon: Icon(icon, color: Color(0xFF1A237E)),
+        labelStyle: TextStyle(color: Colors.white70),
+        prefixIcon: Icon(icon, color: Colors.white),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.white),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.white),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.white70),
         ),
       ),
       style: TextStyle(color: Colors.white),

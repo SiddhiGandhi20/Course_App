@@ -14,9 +14,9 @@ class BatchesScreen extends StatefulWidget {
 
 class _BatchesScreenState extends State<BatchesScreen> {
   List<Batch> batches = [
-    Batch(title: "Math Batch 1", category: "5th Class", instructor: "Instructor A", timing: "9:00 AM - 11:00 AM", date: "2025-02-18", price: "500"),
-    Batch(title: "Science Batch 1", category: "6th Class", instructor: "Instructor B", timing: "11:00 AM - 1:00 PM", date: "2025-02-19", price: "600"),
-    Batch(title: "History Batch 1", category: "7th Class", instructor: "Instructor C", timing: "2:00 PM - 4:00 PM", date: "2025-02-20", price: "550"),
+    Batch(title: "Math Batch 1", category: "5th Class", instructor: "Instructor A", timing: "9:00 AM - 11:00 AM", date: "2025-02-18", price: "500", duration: ''),
+    Batch(title: "Science Batch 1", category: "6th Class", instructor: "Instructor B", timing: "11:00 AM - 1:00 PM", date: "2025-02-19", price: "600", duration: ''),
+    Batch(title: "History Batch 1", category: "7th Class", instructor: "Instructor C", timing: "2:00 PM - 4:00 PM", date: "2025-02-20", price: "550", duration: ''),
     // Add more batches as necessary
   ];
 

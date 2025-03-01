@@ -15,36 +15,36 @@ class _SelectBatchScreenState extends State<SelectBatchScreen> {
   // final List<String> boards = ['5th Class', '6th Class', '7th Class'];
 
   final Map<String, List<Batch>> boardBatches = {
-    '5th Class': [
-      Batch(
-        title: '5th Grade Science Batch',
-        instructor: 'Mrs. Priya Singh',
-        timing: '10:00 AM to 12:00 PM',
-        date: 'Monday, Wednesday, Friday',
-        price: '5000',
-        category: '5th Class'
-      ),
-    ],
-    '6th Class': [
-      Batch(
-        title: '6th Grade Math Batch',
-        instructor: 'Mr. Ravi Kumar',
-        timing: '1:00 PM to 3:00 PM',
-        date: 'Tuesday, Thursday',
-         price: '5000',
-        category: '6th Class'
-      ),
-    ],
-    '7th Class': [
-      Batch(
-        title: '7th Grade History Batch',
-        instructor: 'Dr. Suresh Verma',
-        timing: '3:00 PM to 5:00 PM',
-        date: 'Monday, Wednesday',
-         price: '5000',
-        category: '7th Class'
-      ),
-    ],
+    // '5th Class': [
+    //   Batch(
+    //     title: '5th Grade Science Batch',
+    //     instructor: 'Mrs. Priya Singh',
+    //     timing: '10:00 AM to 12:00 PM',
+    //     date: 'Monday, Wednesday, Friday',
+    //     price: '5000',
+    //     category: '5th Class'
+    //   ),
+    // ],
+    // '6th Class': [
+    //   Batch(
+    //     title: '6th Grade Math Batch',
+    //     instructor: 'Mr. Ravi Kumar',
+    //     timing: '1:00 PM to 3:00 PM',
+    //     date: 'Tuesday, Thursday',
+    //      price: '5000',
+    //     category: '6th Class'
+    //   ),
+    // ],
+    // '7th Class': [
+    //   Batch(
+    //     title: '7th Grade History Batch',
+    //     instructor: 'Dr. Suresh Verma',
+    //     timing: '3:00 PM to 5:00 PM',
+    //     date: 'Monday, Wednesday',
+    //      price: '5000',
+    //     category: '7th Class'
+    //   ),
+    // ],
   };
 
   @override

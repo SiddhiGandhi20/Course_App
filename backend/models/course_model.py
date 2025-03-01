@@ -3,7 +3,7 @@ from config import db  # ✅ Import the initialized PyMongo instance
 
 def get_courses_collection():
     """Returns the MongoDB collection for courses"""
-    return db.db["courses"]  # ✅ FIXED: Use `db.db` instead of `db`
+    return db["courses"]  # ✅ FIXED: Use `db.db` instead of `db`
 
 def add_course(data):
     """ Adds a new course to MongoDB """

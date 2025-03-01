@@ -5,6 +5,7 @@ from flask_pymongo import PyMongo
 from flask_cors import CORS
 from routes.user_routes import user_routes
 from routes.course_routes import course_bp
+from routes.batch_routes import batch_bp
 from config import Config
 
 app = Flask(__name__)
@@ -21,6 +22,8 @@ CORS(app)
 # Register Blueprints
 app.register_blueprint(user_routes, url_prefix='/api')
 app.register_blueprint(course_bp, url_prefix='/api')
+app.register_blueprint(batch_bp, url_prefix="/api")
+
 
 # Upload folder path
 UPLOAD_FOLDER = "uploads"
