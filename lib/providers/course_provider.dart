@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/course.dart';
 
 class CourseProvider with ChangeNotifier {
-  Map<String, List<Course>> _categoryWiseCourses = {}; // Courses grouped by category
+  final Map<String, List<Course>> _categoryWiseCourses = {}; // Courses grouped by category
   List<Course> _myCourses = []; // Courses user has enrolled in
   List<Course> _allCourses = []; // All courses
 

@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 class Course {
   final String id; // ✅ Store MongoDB _id as a String
