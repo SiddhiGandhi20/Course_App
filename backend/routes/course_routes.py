@@ -1,7 +1,8 @@
 import os
 import socket
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
+from bson import ObjectId
 from models.course_model import add_course, get_all_courses, get_course_by_id, update_course, delete_course
 from config import db  # ✅ Import `db` from `config.py`
 
@@ -133,8 +134,43 @@ def remove_course(course_id):
         return jsonify({'error': 'Course not found'}), 404
     return jsonify({'message': 'Course deleted successfully!'}), 200
 
-# Serve uploaded files
-@course_bp.route('/uploads/<path:filename>')
-def serve_uploads(filename):
+# Serve uploaded files correctly
+@course_bp.route('/uploads/<folder>/<filename>')
+def serve_uploads(folder, filename):
     """Serves uploaded files via HTTP"""
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    valid_folders = ["images", "videos", "documents"]
+    if folder not in valid_folders:
+        return jsonify({"error": "Invalid folder"}), 400
+    return send_from_directory(os.path.join(UPLOAD_FOLDER, folder), filename)
+
+@course_bp.route('/courses/grouped', methods=['GET'])
+def fetch_courses_by_category():
+    """API to get all courses grouped by category"""
+    courses_collection = db.courses.find({})
+    
+    category_wise_courses = {}
+    for course in courses_collection:
+        course['_id'] = str(course['_id'])  # Convert ObjectId to string
+        category = course.get("category", "Others")
+        if category not in category_wise_courses:
+            category_wise_courses[category] = []
+        category_wise_courses[category].append(course)
+
+    return jsonify(category_wise_courses), 200
+
+@course_bp.route('/courses/by-category', methods=['GET'])
+def fetch_courses_by_specific_category():
+    """API to get courses for a specific category"""
+    category = request.args.get('category')
+
+    if not category:
+        return jsonify({"error": "Category is required"}), 400
+
+    courses = list(db.courses.find({"category": category}))
+    for course in courses:
+        course['_id'] = str(course['_id'])  # Convert ObjectId to string
+
+    if not courses:
+        return jsonify({"message": f"No courses found for category: {category}"}), 404
+
+    return jsonify(courses), 200

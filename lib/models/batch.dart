@@ -17,27 +17,16 @@ class Batch {
     required this.duration,
   });
 
-  factory Batch.fromMap(Map<String, dynamic> map) {
+  // Convert JSON to Batch object
+  factory Batch.fromJson(Map<String, dynamic> json) {
     return Batch(
-      title: map['title'],
-      instructor: map['instructor'],
-      timing: map['timing'] ?? "",
-      date: map['date'],
-      category: map['category'],
-      price: map['price'],
-      duration: map['duration'],
+      title: json['title'] ?? '',
+      instructor: json['instructor'] ?? '',
+      timing: json['timing'] ?? '',
+      date: json['date'] ?? '',
+      category: json['category'] ?? '',
+      price: json['price'] ?? '0',
+      duration: json['duration'] ?? '',
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'title': title,
-      'instructor': instructor,
-      'timing': timing,
-      'date': date,
-      'category': category,
-      'price': price,
-      'duration': duration,
-    };
   }
 }

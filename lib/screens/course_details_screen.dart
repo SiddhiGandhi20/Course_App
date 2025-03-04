@@ -1,25 +1,67 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
+import 'package:provider/provider.dart';
 import '../styles/course_styles.dart';
 import '../widgets/video_player_widget.dart';
-
 import '../models/course.dart';
+import '../providers/course_provider.dart';
 
-class CourseDetailsScreen extends StatelessWidget {
-  final Course course;
+class CourseDetailsScreen extends StatefulWidget {
+  final String courseId;
 
-  const CourseDetailsScreen({super.key, required this.course});
+  const CourseDetailsScreen({super.key, required this.courseId});
 
-  void _openFile(String filePath) {
-    OpenFile.open(filePath);
+  @override
+  _CourseDetailsScreenState createState() => _CourseDetailsScreenState();
+}
+
+class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
+  Course? course;
+  bool isLoading = true;
+  bool isNotFound = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCourse();
+  }
+
+  Future<void> _fetchCourse() async {
+    final courseProvider = Provider.of<CourseProvider>(context, listen: false);
+    final fetchedCourse = await courseProvider.fetchCourseById(widget.courseId);
+
+    if (fetchedCourse != null) {
+      setState(() {
+        course = fetchedCourse;
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+        isNotFound = true;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (isNotFound || course == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Course Not Found')),
+        body: const Center(child: Text('The course you are looking for does not exist.')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(course.title, style: const TextStyle(fontSize: 18)),
+        title: Text(course!.title, style: const TextStyle(fontSize: 18)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -28,21 +70,22 @@ class CourseDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
-            _buildCourseStats(),
-            _buildDescription(), // ✅ Added Description Section
-            _buildWhatYoullLearn(),
-            _buildTags(), // ✅ Added Tags Section
-            _buildVideos(),
-            _buildNotes(),
+            _buildHeader(course!),
+            _buildCourseStats(course!),
+            _buildDescription(course!),
+            _buildWhatYoullLearn(course!),
+            _buildTags(course!),
+            _buildVideos(course!),
+            _buildNotes(course!),
           ],
         ),
       ),
     );
   }
 
-  // 🔹 Header Section
-  Widget _buildHeader() {
+  // 🔹 UI Helper Functions
+
+  Widget _buildHeader(Course course) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -51,7 +94,7 @@ class CourseDetailsScreen extends StatelessWidget {
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: _buildImage(),
+              child: _buildImage(course.imagePath),
             ),
           ),
           const SizedBox(height: 16),
@@ -76,14 +119,11 @@ class CourseDetailsScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Image Handling
-  Widget _buildImage() {
-    if (course.imagePath != null && course.imagePath!.startsWith('http')) {
-      return Image.network(course.imagePath!,
-          fit: BoxFit.cover, width: double.infinity, height: 200);
-    } else if (course.imagePath != null && course.imagePath!.isNotEmpty) {
-      return Image.file(File(course.imagePath!),
-          fit: BoxFit.cover, width: double.infinity, height: 200);
+  Widget _buildImage(String? imagePath) {
+    if (imagePath != null && imagePath.startsWith('http')) {
+      return Image.network(imagePath, fit: BoxFit.cover, width: double.infinity, height: 200);
+    } else if (imagePath != null && imagePath.isNotEmpty) {
+      return Image.file(File(imagePath), fit: BoxFit.cover, width: double.infinity, height: 200);
     } else {
       return Container(
         width: double.infinity,
@@ -104,8 +144,7 @@ class CourseDetailsScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Course Stats
-  Widget _buildCourseStats() {
+  Widget _buildCourseStats(Course course) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -129,8 +168,7 @@ class CourseDetailsScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Course Description
-  Widget _buildDescription() {
+  Widget _buildDescription(Course course) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -144,8 +182,7 @@ class CourseDetailsScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 What You'll Learn
-  Widget _buildWhatYoullLearn() {
+  Widget _buildWhatYoullLearn(Course course) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -174,8 +211,7 @@ class CourseDetailsScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Course Tags
-  Widget _buildTags() {
+  Widget _buildTags(Course course) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Wrap(
@@ -185,50 +221,33 @@ class CourseDetailsScreen extends StatelessWidget {
     );
   }
 
-Widget _buildVideos() {
-  print("📂 Checking videos: ${course.videoPaths}");
+  Widget _buildVideos(Course course) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Course Videos', style: CourseStyles.sectionTitleStyle),
+          const SizedBox(height: 10),
+          course.videoPaths.isEmpty
+              ? const Text('No videos available', style: TextStyle(color: Colors.grey))
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: course.videoPaths.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: VideoPlayerWidget(videoPath: course.videoPaths[index]),
+                    );
+                  },
+                ),
+        ],
+      ),
+    );
+  }
 
-  return FutureBuilder(
-    future: Future.delayed(const Duration(milliseconds: 200)), // Delay UI updates slightly
-    builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
-      return Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Course Videos', style: CourseStyles.sectionTitleStyle),
-            const SizedBox(height: 10),
-            course.videoPaths.isEmpty
-                ? const Text('No videos available', style: TextStyle(color: Colors.grey))
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: course.videoPaths.length,
-                    itemBuilder: (context, index) {
-                      print("🎥 Video Path: ${course.videoPaths[index]}");
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: VideoPlayerWidget(videoPath: course.videoPaths[index]),
-                      );
-                    },
-                  ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-
-
-
-  // 🔹 Course Notes
-  Widget _buildNotes() {
+  Widget _buildNotes(Course course) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -243,17 +262,12 @@ Widget _buildVideos() {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: course.notesPaths.length,
                   itemBuilder: (context, index) {
-                    String notePath = course.notesPaths[index];
                     return ListTile(
-                      title: Text(
-                        notePath.split('/').last,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
+                      title: Text(course.notesPaths[index].split('/').last),
                       leading: const Icon(Icons.file_present, color: Colors.blue),
                       trailing: IconButton(
                         icon: const Icon(Icons.open_in_new, color: Colors.blue),
-                        onPressed: () => _openFile(notePath),
+                        onPressed: () => OpenFile.open(course.notesPaths[index]),
                       ),
                     );
                   },

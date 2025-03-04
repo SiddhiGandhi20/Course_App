@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'role_selection_screen.dart';
+import 'teacher_dashboard_screen.dart';
+import 'class_selection_page.dart';
+import 'parents_dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,18 +40,40 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
 
     _controller.forward().then((_) {
-      Future.delayed(Duration(seconds: 1), () {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => RoleSelectionScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: Duration(milliseconds: 800),
-          ),
-        );
-      });
+      _navigateToNextScreen();
     });
+  }
+
+  Future<void> _navigateToNextScreen() async {
+    await Future.delayed(Duration(seconds: 1)); // Wait before navigating
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final bool isLoggedIn = prefs.getBool("is_logged_in") ?? false;
+    final String role = prefs.getString("role") ?? "";
+
+    Widget nextScreen;
+
+    if (isLoggedIn) {
+      if (role == "Teacher") {
+        nextScreen = TeacherDashboard();
+      } else if (role == "Student") {
+        nextScreen = ClassSelectionPage();
+      } else {
+        nextScreen = ParentsDashboardScreen();
+      }
+    } else {
+      nextScreen = RoleSelectionScreen();
+    }
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: Duration(milliseconds: 800),
+      ),
+    );
   }
 
   @override
@@ -64,9 +90,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFBBDEFB), Color.fromARGB(255, 97, 110, 255)
-
-            ],
+            colors: [Color(0xFFBBDEFB), Color.fromARGB(255, 97, 110, 255)],
           ),
         ),
         child: Center(

@@ -9,31 +9,33 @@ class CourseCard extends StatelessWidget {
 
   const CourseCard({super.key, required this.course});
 
-  /// Navigate to Course Details Screen
+  /// Navigate to Course Details Screen with full course data
   void _onExplore(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CourseDetailsScreen(course: course),
+        builder: (context) => CourseDetailsScreen(courseId: course.id), // ✅ Pass Course object
       ),
     );
   }
 
-  /// Handle Buy Now action
+  /// Navigate to Course Pricing Screen
   void _onBuyNow(BuildContext context) {
-    // TODO: Implement purchase functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Purchased: ${course.title}')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CoursePricingScreen(course: course), // ✅ Pass Course object
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 10, // Increased elevation for more shadow
+      elevation: 10,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       shadowColor: Colors.black.withOpacity(0.2),
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16), // Margin for spacing
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -50,7 +52,7 @@ class CourseCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// 📌 Course Title with Gradient Background
+                /// 📌 Course Title
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -74,21 +76,19 @@ class CourseCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-                /// 📌 Instructor Name (styled with a soft color)
-               Row(
-                children: [
-                  /// 📌 Instructor Label
-                  Text(
-                    "Instructor: ",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black.withOpacity(0.6)),
-                  ),
-                  /// 📌 Instructor Name
-                  Text(
-                    course.instructor.isNotEmpty ? course.instructor : "Unknown Instructor",
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
+                /// 📌 Instructor Name
+                Row(
+                  children: [
+                    Text(
+                      "Instructor: ",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black.withOpacity(0.6)),
+                    ),
+                    Text(
+                      course.instructor.isNotEmpty ? course.instructor : "Unknown Instructor",
+                      style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
 
                 const SizedBox(height: 6),
 
@@ -132,7 +132,7 @@ class CourseCard extends StatelessWidget {
                     /// Explore Button
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => _onExplore(context),
+                        onPressed: () => _onExplore(context), // ✅ Pass selected course
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blueAccent,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -142,18 +142,12 @@ class CourseCard extends StatelessWidget {
                         child: const Text("Explore", style: TextStyle(color: Colors.white)),
                       ),
                     ),
-                    const SizedBox(width: 8), // Spacing between buttons
+                    const SizedBox(width: 8),
 
                     /// Buy Now Button
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Navigate to CoursePricingScreen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => CoursePricingScreen(course: course)),
-                          );
-                        },
+                        onPressed: () => _onBuyNow(context), // ✅ Pass selected course
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade700,
                           padding: const EdgeInsets.symmetric(vertical: 14),

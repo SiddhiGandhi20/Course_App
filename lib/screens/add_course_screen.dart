@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:file_picker/file_picker.dart'; // Import File Picker
+import 'package:file_picker/file_picker.dart';
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import '../providers/course_provider.dart';
 import '../models/course.dart';
 import '../widgets/course_image_picker.dart';
 import '../widgets/course_form_fields.dart';
-import '../widgets/video_picker.dart'; // Import Video Picker
+import '../widgets/video_picker.dart';
 
 class AddCourseScreen extends StatefulWidget {
-  final Course? course; // Make the course parameter nullable
+  final Course? course;
 
-  const AddCourseScreen({super.key, this.course}); // Allow null or pass a course
+  const AddCourseScreen({super.key, this.course});
 
   @override
   _AddCourseScreenState createState() => _AddCourseScreenState();
@@ -39,17 +39,11 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   String selectedCategory = 'Select Class';
   String selectedLanguage = 'English';
   String selectedRating = '5';
-  List<String> learningPoints = [
-    'Olympiad',
-    'Scholarships',
-    'Manthan',
-  ];
+  List<String> learningPoints = ['Olympiad', 'Scholarships', 'Manthan'];
 
   @override
   void initState() {
     super.initState();
-
-    // If a course is passed, pre-fill the fields with its data
     if (widget.course != null) {
       _titleController.text = widget.course!.title;
       _instructorController.text = widget.course!.instructor;
@@ -65,7 +59,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     }
   }
 
-  // Function to Pick Course Notes from Local Storage
   Future<void> _pickNotes() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
@@ -80,83 +73,87 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     }
   }
 
-  void _saveCourse() {
+  Future<void> _saveCourse() async {
+    debugPrint("Create Course button pressed.");
     if (_formKey.currentState!.validate()) {
-      String title = _titleController.text.trim();
-      String instructor = _instructorController.text.trim();
-      String description = _descriptionController.text.trim();
-      String courseDuration = _durationController.text.trim();
-      String coursePrice = _priceController.text.trim();
+      debugPrint("Validation successful. Proceeding to save course...");
 
       if (selectedImagePath == null || !File(selectedImagePath!).existsSync()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Please select a valid course image."),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showError("Please select a valid course image.");
         return;
       }
 
       if (selectedVideoPaths.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Please select at least one video."),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showError("Please select at least one video.");
         return;
       }
 
       if (selectedNotesPaths.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Please select at least one course note."),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showError("Please select at least one course note.");
         return;
       }
 
-      if (instructor.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Please enter an instructor name."),
-            backgroundColor: Colors.red,
-          ),
+      try {
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('http://192.168.29.32:5000/api/courses'),
         );
-        return;
+
+        request.fields['title'] = _titleController.text.trim();
+        request.fields['instructor'] = _instructorController.text.trim();
+        request.fields['description'] = _descriptionController.text.trim();
+        request.fields['category'] = selectedCategory;
+        request.fields['language'] = selectedLanguage;
+        request.fields['duration'] = _durationController.text.trim();
+        request.fields['price'] = _priceController.text.trim();
+        request.fields['is_private'] = isPrivateCourse.toString();
+        request.fields['has_certificate'] = certificateAvailable.toString();
+        request.fields['is_online'] = isOnlineCourse.toString();
+        request.fields['rating'] = selectedRating;
+        request.fields['tags'] = tags.join(',');
+        request.fields['learning_points'] = learningPoints.join(',');
+        request.fields['timing'] = '10:00 AM';
+        request.fields['date'] = '2025-02-20';
+
+        request.files.add(await http.MultipartFile.fromPath('image', selectedImagePath!));
+
+        for (String videoPath in selectedVideoPaths) {
+          request.files.add(await http.MultipartFile.fromPath('videos', videoPath));
+        }
+
+        for (String notePath in selectedNotesPaths) {
+          request.files.add(await http.MultipartFile.fromPath('documents', notePath));
+        }
+
+        debugPrint("Sending API request...");
+
+        var response = await request.send();
+        var responseBody = await response.stream.bytesToString();
+
+        debugPrint("Response Code: ${response.statusCode}");
+        debugPrint("Response Body: $responseBody");
+
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Course added successfully!"), backgroundColor: Colors.green),
+          );
+          Navigator.pop(context);
+        } else {
+          _showError("Failed to add course. Response: $responseBody");
+        }
+      } catch (e) {
+        debugPrint("Error during API call: $e");
+        _showError("An error occurred: $e");
       }
-
-      // Assuming you have necessary values from user input, here's how you'd create a course
-      final course = Course(
-        title: title,
-        instructor: instructor,
-        description: description,
-        category: selectedCategory,
-        language: selectedLanguage,
-        duration: courseDuration,
-        price: double.parse(coursePrice),
-        isPrivate: isPrivateCourse,
-        hasCertificate: certificateAvailable,
-        isOnline: isOnlineCourse,
-        rating: double.parse(selectedRating),
-        tags: tags,
-        imagePath: selectedImagePath,
-        videoPaths: selectedVideoPaths,
-        notesPaths: selectedNotesPaths,
-        learningPoints: learningPoints, timing: null, date: null,
-      );
-
-      // If the course is being updated, you might want to update instead of adding
-      if (widget.course != null) {
-        Provider.of<CourseProvider>(context, listen: false).updateCourse(course);
-      } else {
-        Provider.of<CourseProvider>(context, listen: false).addCourse(course);
-      }
-
-      Navigator.pop(context);
+    } else {
+      debugPrint("Form validation failed.");
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 
   @override
@@ -197,7 +194,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                       selectedImagePath = path;
                     });
                   },
-                ).animate().fade(duration: 500.ms).slideY(begin: 0.3, end: 0.0),
+                ),
                 const SizedBox(height: 20),
                 VideoPicker(
                   onVideosSelected: (paths) {
@@ -205,37 +202,14 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                       selectedVideoPaths = paths;
                     });
                   },
-                ).animate().fade(duration: 500.ms).slideY(begin: 0.3, end: 0.0),
+                ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
                   onPressed: _pickNotes,
                   icon: const Icon(Icons.note_add),
                   label: const Text("Add Course Notes"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    foregroundColor: Colors.white,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white),
                 ),
-                if (selectedNotesPaths.isNotEmpty)
-                  Column(
-                    children: selectedNotesPaths
-                        .map((path) => ListTile(
-                              title: Text(
-                                path.split('/').last,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              leading: const Icon(Icons.description, color: Colors.blue),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () {
-                                  setState(() {
-                                    selectedNotesPaths.remove(path);
-                                  });
-                                },
-                              ),
-                            ))
-                        .toList(),
-                  ),
                 const SizedBox(height: 20),
                 CourseFormFields(
                   titleController: _titleController,
@@ -274,28 +248,11 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                   learningPoints: learningPoints,
                   onLearningPointAdded: (point) => setState(() => learningPoints.add(point)),
                   onLearningPointRemoved: (point) => setState(() => learningPoints.remove(point)),
-                ).animate().fade(duration: 600.ms).slideY(begin: 0.2, end: 0.0),
+                    ).animate().fade(duration: 600.ms).slideY(begin: 0.2, end: 0.0),
                 const SizedBox(height: 24),
-                Center(
-                  child: SizedBox(
-                    width: 200,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D47A1),
-                        shadowColor: const Color.fromARGB(255, 5, 143, 255),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                      ),
-                      onPressed: _saveCourse,
-                      child: const Text(
-                        'Create Course',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ).animate().fade(duration: 700.ms).scale(begin: Offset(0.8, 0.8), end: Offset(1.0, 1.0)),
-                  ),
+                ElevatedButton(
+                  onPressed: _saveCourse,
+                  child: const Text('Create Course', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

@@ -15,49 +15,15 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  late Future<Widget> _initialScreenFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _initialScreenFuture = _checkLoginStatus();
-  }
-
-  Future<Widget> _checkLoginStatus() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final bool isLoggedIn = prefs.getBool("is_logged_in") ?? false;
-    final String? role = prefs.getString("role");
-
-    if (isLoggedIn && role != null) {
-      switch (role) {
-        case "Teacher":
-          return TeacherDashboard();
-        case "Student":
-          return ClassSelectionPage();
-        case "Parent":
-          return ParentsDashboardScreen();
-        default:
-          return SplashScreen();
-      }
-    } else {
-      return SplashScreen();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => CourseProvider()),
-        ChangeNotifierProvider(create: (_) => GoalProvider()),
+        ChangeNotifierProvider(create: (context) => GoalProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -66,20 +32,14 @@ class _MyAppState extends State<MyApp> {
           primarySwatch: Colors.blue,
           fontFamily: 'Roboto',
         ),
-        home: FutureBuilder<Widget>(
-          future: _initialScreenFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            } else if (snapshot.hasData) {
-              return snapshot.data!;
-            } else {
-              return SplashScreen();
-            }
-          },
-        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const SplashScreen(),
+          '/login': (context) => const LoginScreen(role: ""),
+          '/teacher_dashboard': (context) => const TeacherDashboard(),
+          '/class_selection': (context) => const ClassSelectionPage(),
+          '/parent_dashboard': (context) => const ParentsDashboardScreen(),
+        },
       ),
     );
   }

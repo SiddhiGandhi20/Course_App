@@ -21,8 +21,8 @@ class _LoginScreenState extends State<LoginScreen>
   late Animation<double> _fadeAnimation;
 
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     setState(() => _isLoading = true);
 
-    final String apiUrl = 'http://192.168.29.33:5000/api/register';
+    final String apiUrl = 'http://192.168.29.32:5000/api/register';
 
     final Map<String, dynamic> requestData = {
       "full_name": _nameController.text.trim(),
@@ -75,19 +75,28 @@ class _LoginScreenState extends State<LoginScreen>
         await prefs.setString("role", widget.role);
         await prefs.setBool("is_logged_in", true);
 
-        Widget nextScreen;
-        if (widget.role == "Teacher") {
-          nextScreen = TeacherDashboard();
-        } else if (widget.role == "Student") {
-          nextScreen = ClassSelectionPage();
-        } else {
-          nextScreen = ParentsDashboardScreen();
-        }
+        // Debug role value
+        print("User Role: ${widget.role}");
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => nextScreen),
-        );
+        // Navigate to the respective dashboard
+        if (widget.role == "Teacher") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const TeacherDashboard()),
+          );
+        } else if (widget.role == "Student") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ClassSelectionPage()),
+          );
+        } else if (widget.role == "Parent") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ParentsDashboardScreen()),
+          );
+        } else {
+          _showErrorDialog("Invalid role. Please try again.");
+        }
       } else {
         final Map<String, dynamic> responseBody = jsonDecode(response.body);
         _showErrorDialog(responseBody["error"] ?? "Login failed. Please try again.");
@@ -103,12 +112,12 @@ class _LoginScreenState extends State<LoginScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Error", style: TextStyle(color: Colors.red)),
+        title: const Text("Error", style: TextStyle(color: Colors.red)),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
+            child: const Text("OK"),
           ),
         ],
       ),
@@ -120,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Scaffold(
       body: SizedBox.expand(
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFFBBDEFB), Color(0xFF1A237E)],
               begin: Alignment.topCenter,
@@ -130,53 +139,24 @@ class _LoginScreenState extends State<LoginScreen>
           child: SafeArea(
             child: SingleChildScrollView(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(height: 100),
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            Icon(Icons.school, size: 60, color: Colors.white),
-                            SizedBox(height: 16),
-                            Text(
-                              'EduConnect',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              'Welcome Back!',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 40),
-                      _buildAnimatedTextField(
+                      const SizedBox(height: 100),
+                      _buildLogoHeader(),
+                      const SizedBox(height: 40),
+                      AnimatedTextField(
                         controller: _nameController,
                         label: 'Full Name',
                         icon: Icons.person,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Please enter your full name";
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                            value == null || value.isEmpty ? "Please enter your full name" : null,
                       ),
-                      SizedBox(height: 20),
-                      _buildAnimatedTextField(
+                      const SizedBox(height: 20),
+                      AnimatedTextField(
                         controller: _phoneController,
                         label: 'Phone Number',
                         icon: Icons.phone,
@@ -190,10 +170,10 @@ class _LoginScreenState extends State<LoginScreen>
                           return null;
                         },
                       ),
-                      SizedBox(height: 32),
+                      const SizedBox(height: 32),
                       _isLoading
-                          ? CircularProgressIndicator()
-                          : _buildContinueButton(),
+                          ? const CircularProgressIndicator()
+                          : ContinueButton(onPressed: _handleLogin),
                     ],
                   ),
                 ),
@@ -205,56 +185,104 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildContinueButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: _handleLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF3949AB),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildLogoHeader() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Column(
+        children: const [
+          Icon(Icons.school, size: 60, color: Colors.white),
+          SizedBox(height: 16),
+          Text(
+            'EduConnect',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-          elevation: 5,
-        ),
-        child: Text(
-          'Continue',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
+          SizedBox(height: 10),
+          Text(
+            'Welcome Back!',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Colors.white70,
+            ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildAnimatedTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
-  }) {
+class AnimatedTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final IconData icon;
+  final TextInputType keyboardType;
+  final String? Function(String?)? validator;
+
+  const AnimatedTextField({
+    super.key,
+    required this.controller,
+    required this.label,
+    required this.icon,
+    this.keyboardType = TextInputType.text,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.white70),
+        labelStyle: const TextStyle(color: Colors.white70),
         prefixIcon: Icon(icon, color: Colors.white),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white),
+          borderSide: const BorderSide(color: Colors.white),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white),
+          borderSide: const BorderSide(color: Colors.white),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white70),
+          borderSide: const BorderSide(color: Colors.white70),
         ),
       ),
-      style: TextStyle(color: Colors.white),
+      style: const TextStyle(color: Colors.white),
+    );
+  }
+}
+
+class ContinueButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const ContinueButton({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF3949AB),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 5,
+        ),
+        child: const Text(
+          'Continue',
+          style: TextStyle(color: Colors.white, fontSize: 18),
+        ),
+      ),
     );
   }
 }

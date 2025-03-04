@@ -20,7 +20,7 @@ class TeacherDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final courses = Provider.of<CourseProvider>(context).courses;
+    final courses = Provider.of<CourseProvider>(context).allCourses;
 
     return Scaffold(
       body: Stack(

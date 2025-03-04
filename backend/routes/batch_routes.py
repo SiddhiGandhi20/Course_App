@@ -48,3 +48,17 @@ def remove_batch(batch_id):
     if delete_batch(batch_id):
         return jsonify({"message": "Batch deleted successfully"}), 200
     return jsonify({"error": "Batch not found"}), 404
+
+# Get batches filtered by category
+@batch_bp.route("/batches/category/<category>", methods=["GET"])
+def fetch_batches_by_category(category):
+    batches = get_all_batches()
+    
+    # Filter batches based on the requested category
+    filtered_batches = [batch for batch in batches if batch["category"] == category]
+
+    if not filtered_batches:
+        return jsonify({"message": "No batches found for this category"}), 404
+
+    return jsonify(filtered_batches), 200
+
