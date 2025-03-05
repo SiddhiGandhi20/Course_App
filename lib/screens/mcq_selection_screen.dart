@@ -210,12 +210,12 @@ class _MCQSelectionScreenState extends State<MCQSelectionScreen> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const TestDetailsScreen(),
-                            ),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => const TestDetailsScreen(tes),
+                          //   ),
+                          // );
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.blue, // ✅ Text color

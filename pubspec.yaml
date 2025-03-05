@@ -50,6 +50,7 @@ dependencies:
   get: ^4.7.2
   flutter_webrtc: ^0.12.11
   socket_io_client: ^3.0.2
+  flutter_pdfview: ^1.4.0
 
  
   # build_runner: ^2.4.15
@@ -97,6 +98,7 @@ flutter:
     - assets/apple.png
     - assets/ggl.png
     - assets/test.jpg
+    - assets/success.gif
    # - assets/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

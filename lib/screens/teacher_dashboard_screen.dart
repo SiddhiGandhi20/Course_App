@@ -6,6 +6,7 @@ import 'package:course_app/screens/add_course_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:course_app/screens/add_batches_screen.dart';
+import '../screens/add_test_screen.dart';
 import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../models/batch.dart';  // Make sure you have the Batch model
@@ -71,7 +72,12 @@ class TeacherDashboard extends StatelessWidget {
               icon: Icons.add_circle_outline,
               label: 'Create Test',
               color: Colors.blue.shade400,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) =>  AddTestScreen()),
+                );
+              },
             ),
             buildActionButton(
               icon: Icons.library_books,

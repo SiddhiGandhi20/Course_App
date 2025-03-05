@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/test_provider.dart';
+import '../screens/test_details_screen.dart';
+import '../models/test.dart';
 
 class TestsScreen extends StatefulWidget {
   final String userId;
@@ -133,9 +135,14 @@ class _TestsScreenState extends State<TestsScreen> {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
-                                  onPressed: () {
-                                    // TODO: Navigate to test details page
-                                  },
+                                 onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TestDetailsScreen(testId: test.id),
+                                    ),
+                                  );
+                                },
                                   child: const Text("Explore"),
                                 ),
 
