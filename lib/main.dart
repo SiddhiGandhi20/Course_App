@@ -3,11 +3,14 @@ import 'package:provider/provider.dart';
 
 import 'providers/course_provider.dart';
 import 'providers/goal_provider.dart';
+import 'providers/test_provider.dart'; // Import TestProvider
+
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/teacher_dashboard_screen.dart';
 import 'screens/class_selection_page.dart';
 import 'screens/parents_dashboard_screen.dart';
+// import 'screens/tests_screen.dart'; // Import TestsScreen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +26,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => CourseProvider()),
         ChangeNotifierProvider(create: (context) => GoalProvider()),
+        ChangeNotifierProvider(create: (context) => TestProvider()), // Added TestProvider
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -38,6 +42,7 @@ class MyApp extends StatelessWidget {
           '/teacher_dashboard': (context) => const TeacherDashboard(),
           '/class_selection': (context) => const ClassSelectionPage(),
           '/parent_dashboard': (context) => const ParentsDashboardScreen(),
+          // '/tests': (context) => const TestsScreen(), // Added TestsScreen route
         },
       ),
     );

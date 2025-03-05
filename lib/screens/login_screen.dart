@@ -49,64 +49,63 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+  setState(() => _isLoading = true);
+  final String apiUrl = 'http://192.168.29.32:5000/api/register';
 
-    final String apiUrl = 'http://192.168.29.32:5000/api/register';
+  final Map<String, dynamic> requestData = {
+    "full_name": _nameController.text.trim(),
+    "mobile_number": _phoneController.text.trim(),
+    "role": widget.role
+  };
 
-    final Map<String, dynamic> requestData = {
-      "full_name": _nameController.text.trim(),
-      "mobile_number": _phoneController.text.trim(),
-      "role": widget.role
-    };
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestData),
+    );
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(requestData),
-      );
+    print("🔍 Response Status Code: ${response.statusCode}");
+    print("🔍 Response Body: ${response.body}");
 
-      if (response.statusCode == 201) {
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString("full_name", _nameController.text.trim());
-        await prefs.setString("mobile_number", _phoneController.text.trim());
-        await prefs.setString("role", widget.role);
-        await prefs.setBool("is_logged_in", true);
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final Map<String, dynamic> responseBody = jsonDecode(response.body);
+      String userId = responseBody["user_id"];
 
-        // Debug role value
-        print("User Role: ${widget.role}");
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString("userId", userId);
+      await prefs.setString("full_name", _nameController.text.trim());
+      await prefs.setString("mobile_number", _phoneController.text.trim());
+      await prefs.setString("role", widget.role);
+      await prefs.setBool("is_logged_in", true);
 
-        // Navigate to the respective dashboard
-        if (widget.role == "Teacher") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const TeacherDashboard()),
-          );
-        } else if (widget.role == "Student") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const ClassSelectionPage()),
-          );
-        } else if (widget.role == "Parent") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const ParentsDashboardScreen()),
-          );
-        } else {
-          _showErrorDialog("Invalid role. Please try again.");
-        }
+      print("✅ User ID stored: $userId");
+
+      // Navigate based on role
+      if (widget.role == "Teacher") {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TeacherDashboard()));
+      } else if (widget.role == "Student") {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ClassSelectionPage()));
+      } else if (widget.role == "Parent") {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ParentsDashboardScreen()));
       } else {
-        final Map<String, dynamic> responseBody = jsonDecode(response.body);
-        _showErrorDialog(responseBody["error"] ?? "Login failed. Please try again.");
+        _showErrorDialog("Invalid role. Please try again.");
       }
-    } catch (error) {
-      _showErrorDialog("Failed to connect to server. Please check your network.");
-    } finally {
-      setState(() => _isLoading = false);
+    } else {
+      final Map<String, dynamic> responseBody = jsonDecode(response.body);
+      _showErrorDialog(responseBody["error"] ?? "Login failed. Please try again.");
     }
+  } catch (error) {
+    print("❌ Error: $error");
+    _showErrorDialog("Failed to connect to server. Please check your network.");
+  } finally {
+    setState(() => _isLoading = false);
   }
+}
+
+
 
   void _showErrorDialog(String message) {
     showDialog(

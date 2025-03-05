@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/batches_screen.dart';
 import '../screens/test_screen.dart';
 import '../screens/class_selection_page.dart';
@@ -12,7 +13,7 @@ class BottomNavBar extends StatefulWidget {
     super.key,
     required this.selectedIndex,
     required this.onItemSelected,
-    required this.selectedCategory, // Now required
+    required this.selectedCategory,
   });
 
   @override
@@ -20,22 +21,50 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
-  int _hoveredIndex = -1; // To track which item is hovered
+  int _hoveredIndex = -1;
+  String _userId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId(); // Load user ID on startup
+  }
+
+  // Fetch userId from SharedPreferences
+  Future<void> _loadUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? storedUserId = prefs.getString('userId');
+
+    if (mounted) {
+      setState(() {
+        _userId = storedUserId ?? '';
+      });
+    }
+
+    debugPrint("🔍 Loaded User ID: $_userId");
+  }
 
   void _onItemSelected(BuildContext context, int index) {
-    if (index == widget.selectedIndex) return; // Prevent unnecessary navigation
+    if (index == widget.selectedIndex) return;
 
     Widget nextScreen;
 
     switch (index) {
-      case 1:
-        nextScreen = const TestScreen();
-        break;
-      case 2: // Navigate to BatchesScreen with selectedCategory
-        nextScreen = BatchesScreen(category: widget.selectedCategory);
-        break;
-      case 3:
+      case 0: // Study (Placeholder screen)
         nextScreen = const ClassSelectionPage();
+        break;
+      case 1: // Test
+        if (_userId.isNotEmpty) {
+          nextScreen = TestsScreen(userId: _userId);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User ID not found, please log in again.')),
+          );
+          return;
+        }
+        break;
+      case 2: // Batches
+        nextScreen = BatchesScreen(category: widget.selectedCategory);
         break;
       default:
         return;
@@ -51,29 +80,35 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> navItems = [
+      {"icon": Icons.book, "label": "Study"},
+      {"icon": Icons.assignment, "label": "Test"},
+      {"icon": Icons.people, "label": "Batches"},
+    ];
+
     return BottomNavigationBar(
       currentIndex: widget.selectedIndex,
       onTap: (index) => _onItemSelected(context, index),
-      items: [
-        _buildNavBarItem(Icons.book, 'Study', 1),
-        _buildNavBarItem(Icons.assignment, 'Test', 2),
-        _buildNavBarItem(Icons.people, 'Batches', 3),
-      ],
-      selectedItemColor: Colors.blueAccent, // Customize selected item color
-      unselectedItemColor: Colors.grey, // Customize unselected item color
-      showUnselectedLabels: true, // Display labels for unselected items
-      backgroundColor: Colors.white, // Custom background color for the navbar
-      elevation: 10, // Add elevation for a shadow effect
-      selectedFontSize: 14, // Adjust the font size for selected labels
-      unselectedFontSize: 12, // Adjust the font size for unselected labels
-      type: BottomNavigationBarType.fixed, // Use fixed type for consistent design
+      items: navItems
+          .asMap()
+          .entries
+          .map((entry) => _buildNavBarItem(entry.value["icon"], entry.value["label"], entry.key))
+          .toList(),
+      selectedItemColor: Colors.blueAccent,
+      unselectedItemColor: Colors.grey,
+      showUnselectedLabels: true,
+      backgroundColor: Colors.white,
+      elevation: 10,
+      selectedFontSize: 14,
+      unselectedFontSize: 12,
+      type: BottomNavigationBarType.fixed,
     );
   }
 
-  // Helper method to add hover effect with state management
+  // Helper method for hover effect
   BottomNavigationBarItem _buildNavBarItem(IconData icon, String label, int index) {
-    bool isHovered = _hoveredIndex == index; // Check if the item is hovered
-    bool isSelected = widget.selectedIndex == index; // Check if the item is selected
+    bool isHovered = _hoveredIndex == index;
+    bool isSelected = widget.selectedIndex == index;
 
     return BottomNavigationBarItem(
       icon: MouseRegion(
@@ -81,10 +116,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
         onExit: (_) => setState(() => _hoveredIndex = -1),
         child: Icon(
           icon,
-          size: isHovered || isSelected ? 35 : 30, // Larger icon size on hover or selection
-          color: isSelected
-              ? Colors.blueAccent // Selected color
-              : (isHovered ? Colors.blueAccent : Colors.grey), // Hover and unselected color
+          size: isHovered || isSelected ? 35 : 30,
+          color: isSelected ? Colors.blueAccent : (isHovered ? Colors.blueAccent : Colors.grey),
         ),
       ),
       label: label,
