@@ -50,7 +50,9 @@ class _ParentsDashboardScreenState extends State<ParentsDashboardScreen> {
   }
 
   /// Save linked student to the parent's collection in the backend
- Future<void> saveLinkedStudent(String studentId) async {
+Future<void> saveLinkedStudent(String studentId) async {
+  print("Sending student ID: $studentId"); // Debugging statement
+
   final response = await http.post(
     Uri.parse("$baseUrl/parent/link-student"),
     headers: {"Content-Type": "application/json"},
@@ -60,7 +62,7 @@ class _ParentsDashboardScreenState extends State<ParentsDashboardScreen> {
   print("Response Code: ${response.statusCode}");
   print("Response Body: ${response.body}");
 
-  if (response.statusCode == 200 ) {
+  if (response.statusCode == 200 || response.statusCode == 201) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Student linked successfully!")),
     );
@@ -70,7 +72,6 @@ class _ParentsDashboardScreenState extends State<ParentsDashboardScreen> {
     );
   }
 }
-
 
 
   /// Fetch purchased courses for a specific student
