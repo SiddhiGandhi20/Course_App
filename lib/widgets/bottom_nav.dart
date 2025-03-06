@@ -27,10 +27,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   void initState() {
     super.initState();
-    _loadUserId(); // Load user ID on startup
+    _loadUserId(); // Load user ID from SharedPreferences
   }
 
-  // Fetch userId from SharedPreferences
+  // 🚀 Load User ID from SharedPreferences
   Future<void> _loadUserId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? storedUserId = prefs.getString('userId');
@@ -40,41 +40,46 @@ class _BottomNavBarState extends State<BottomNavBar> {
         _userId = storedUserId ?? '';
       });
     }
-
     debugPrint("🔍 Loaded User ID: $_userId");
   }
 
+  // ✅ Handle Bottom Navigation Click
   void _onItemSelected(BuildContext context, int index) {
     if (index == widget.selectedIndex) return;
 
     Widget nextScreen;
 
     switch (index) {
-      case 0: // Study (Placeholder screen)
+      case 0: // Study
         nextScreen = const ClassSelectionPage();
         break;
+
       case 1: // Test
-        if (_userId.isNotEmpty) {
+        if (_userId.isNotEmpty ) {
           nextScreen = TestsScreen(userId: _userId);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('User ID not found, please log in again.')),
+            const SnackBar(content: Text('⚠️ User ID or Category is missing!')),
           );
           return;
         }
         break;
+
       case 2: // Batches
         nextScreen = BatchesScreen(category: widget.selectedCategory);
         break;
+
       default:
         return;
     }
 
+    // 🛠 Navigate to the selected screen
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => nextScreen),
     );
 
+    // 🔄 Notify Parent Widget about selection change
     widget.onItemSelected(index);
   }
 
@@ -105,7 +110,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     );
   }
 
-  // Helper method for hover effect
+  // 🎨 Helper Method for Nav Bar Items (with Hover Effect)
   BottomNavigationBarItem _buildNavBarItem(IconData icon, String label, int index) {
     bool isHovered = _hoveredIndex == index;
     bool isSelected = widget.selectedIndex == index;
@@ -114,10 +119,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
       icon: MouseRegion(
         onEnter: (_) => setState(() => _hoveredIndex = index),
         onExit: (_) => setState(() => _hoveredIndex = -1),
-        child: Icon(
-          icon,
-          size: isHovered || isSelected ? 35 : 30,
-          color: isSelected ? Colors.blueAccent : (isHovered ? Colors.blueAccent : Colors.grey),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          child: Icon(
+            icon,
+            size: isHovered || isSelected ? 35 : 30,
+            color: isSelected ? Colors.blueAccent : (isHovered ? Colors.blueAccent : Colors.grey),
+          ),
         ),
       ),
       label: label,

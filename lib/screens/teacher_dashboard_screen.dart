@@ -91,6 +91,7 @@ class TeacherDashboard extends StatelessWidget {
 
               },
             ),
+            
           ],
         ),
         const SizedBox(height: 16), // Adds space between the rows

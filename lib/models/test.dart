@@ -4,8 +4,9 @@ class Test {
   final String description;
   final double price;
   bool isUnlocked;
-  final List<String> images; // ✅ Added images list
-  final List<String> documents; // ✅ Added documents list
+  final String category; // ✅ Added category field
+  final List<String> images;
+  final List<String> documents;
 
   Test({
     required this.id,
@@ -13,17 +14,20 @@ class Test {
     required this.description,
     required this.price,
     this.isUnlocked = false,
-    this.images = const [], // Default empty list
-    this.documents = const [], // Default empty list
-  });
+    required this.category, // ✅ Ensure category is required
+    List<String>? images, 
+    List<String>? documents,
+  })  : images = images ?? [], 
+        documents = documents ?? [];
 
-  // ✅ Copy with method to update properties
+  // ✅ Copy method to update properties
   Test copyWith({
     String? id,
     String? title,
     String? description,
     double? price,
     bool? isUnlocked,
+    String? category, // ✅ Added category
     List<String>? images,
     List<String>? documents,
   }) {
@@ -33,21 +37,23 @@ class Test {
       description: description ?? this.description,
       price: price ?? this.price,
       isUnlocked: isUnlocked ?? this.isUnlocked,
-      images: images ?? this.images,
-      documents: documents ?? this.documents,
+      category: category ?? this.category, // ✅ Ensure category updates
+      images: images ?? List.from(this.images),
+      documents: documents ?? List.from(this.documents),
     );
   }
 
   // ✅ Convert JSON to Test object
   factory Test.fromJson(Map<String, dynamic> json) {
     return Test(
-      id: json['_id'],
-      title: json['title'],
-      description: json['description'],
-      price: double.tryParse(json['price'].toString()) ?? 0.0, // 🔥 Safe conversion
+      id: json['_id'] ?? '', 
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      price: double.tryParse(json['price'].toString()) ?? 0.0,
       isUnlocked: json['isUnlocked'] ?? false,
-      images: List<String>.from(json['images'] ?? []), // 🔥 Handle images list
-      documents: List<String>.from(json['documents'] ?? []), // 🔥 Handle documents list
+      category: json['category'] ?? '', // ✅ Handle category
+      images: (json['images'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      documents: (json['documents'] as List?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 
@@ -59,8 +65,9 @@ class Test {
       'description': description,
       'price': price,
       'isUnlocked': isUnlocked,
-      'images': images, // 🔥 Include images in JSON
-      'documents': documents, // 🔥 Include documents in JSON
+      'category': category, // ✅ Include category in JSON
+      'images': images,
+      'documents': documents,
     };
   }
 }

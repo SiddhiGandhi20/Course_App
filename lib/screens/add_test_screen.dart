@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,14 +18,25 @@ class _AddTestScreenState extends State<AddTestScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  List<File> _selectedImages = [];
-  List<File> _selectedDocuments = [];
+  
+  List<Map<String, dynamic>> _selectedImages = []; // Store images as {name, bytes}
+  List<Map<String, dynamic>> _selectedDocuments = []; // Store docs as {name, bytes}
+  String? _selectedCategory;
+  
+  final List<String> _categories = ['5th Class', '6th Class', '7th Class'];
 
   Future<void> _pickImages() async {
-    final pickedFiles = await ImagePicker().pickMultiImage();
-    if (mounted) {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile>? pickedFiles = await picker.pickMultiImage();
+
+    if (pickedFiles != null && mounted) {
+      List<Map<String, dynamic>> images = await Future.wait(pickedFiles.map((file) async {
+        Uint8List bytes = await file.readAsBytes();
+        return {'name': basename(file.path), 'bytes': bytes};
+      }));
+
       setState(() {
-        _selectedImages = pickedFiles.map((e) => File(e.path)).toList();
+        _selectedImages.addAll(images);
       });
     }
   }
@@ -35,11 +46,16 @@ class _AddTestScreenState extends State<AddTestScreen> {
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx'],
       allowMultiple: true,
+      withData: true, // ✅ Required for web compatibility
     );
 
     if (result != null && mounted) {
+      List<Map<String, dynamic>> documents = result.files.map((file) {
+        return {'name': file.name, 'bytes': file.bytes};
+      }).toList();
+
       setState(() {
-        _selectedDocuments = result.paths.map((path) => File(path!)).toList();
+        _selectedDocuments.addAll(documents);
       });
     }
   }
@@ -51,21 +67,22 @@ class _AddTestScreenState extends State<AddTestScreen> {
     request.fields['title'] = _titleController.text;
     request.fields['description'] = _descriptionController.text;
     request.fields['price'] = _priceController.text;
+    request.fields['category'] = _selectedCategory ?? "";
 
     try {
       for (var image in _selectedImages) {
-        request.files.add(await http.MultipartFile.fromPath(
+        request.files.add(http.MultipartFile.fromBytes(
           'images',
-          image.path,
-          filename: basename(image.path),
+          image['bytes'],
+          filename: image['name'],
         ));
       }
 
       for (var doc in _selectedDocuments) {
-        request.files.add(await http.MultipartFile.fromPath(
+        request.files.add(http.MultipartFile.fromBytes(
           'documents',
-          doc.path,
-          filename: basename(doc.path),
+          doc['bytes'],
+          filename: doc['name'],
         ));
       }
 
@@ -85,58 +102,41 @@ class _AddTestScreenState extends State<AddTestScreen> {
       }
     }
   }
-void _showSuccessDialog() {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    showDialog(
-      context: navigatorKey.currentContext!,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: Colors.white, // ✅ Ensures white background
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-             
-              SizedBox(height: 10),
-              Icon(Icons.check_circle, color: Colors.green, size: 50), // ✅ Icon below GIF
-              SizedBox(height: 10),
-              Text(
-                "Success",
-                style: TextStyle(
-                  color: Colors.green,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Divider(color: Colors.green),
-              SizedBox(height: 10),
-              Text(
-                "Test Uploaded Successfully!",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              SizedBox(height: 20),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop(); // ✅ Close dialog
-                },
-                child: Text(
-                  "OK",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  });
-}
 
-
+  void _showSuccessDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 50),
+                SizedBox(height: 10),
+                Text(
+                  "Test Uploaded Successfully!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: Text("OK", style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    });
+  }
 
   void _showErrorDialog(String message) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -185,30 +185,20 @@ void _showSuccessDialog() {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-       appBar: AppBar(
-  title: Text(
-    "Add New Test",
-    style: TextStyle(
-      fontWeight: FontWeight.bold,
-      color: Colors.white, // White text color
-    ),
-  ),
-  backgroundColor: Colors.blueAccent,
-  leading: IconButton(
-    icon: Icon(Icons.arrow_back, color: Colors.white), // White back icon
-    onPressed: () {
-      Navigator.of(context).pop(); // Navigate back
-    },
-  ),
-),
-
+        appBar: AppBar(
+          title: Text("Add New Test"),
+          backgroundColor: Colors.blueAccent,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         body: Padding(
           padding: EdgeInsets.all(16),
           child: SingleChildScrollView(
@@ -222,60 +212,26 @@ void _showSuccessDialog() {
                 _buildTextField(_priceController, "Price", Icons.currency_rupee, keyboardType: TextInputType.number),
                 SizedBox(height: 20),
 
-                Text("Upload Images", style: _sectionTitleStyle),
-                SizedBox(height: 8),
-             OutlinedButton.icon(
-  onPressed: _pickImages,
-  icon: Icon(Icons.image, color: Colors.blueAccent),
-  label: Padding(
-    padding: EdgeInsets.symmetric(horizontal: 8), // Added spacing between icon and text
-    child: Text("Pick Images"),
-  ),
-  style: OutlinedButton.styleFrom(
-    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20), // Added padding for proper spacing
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    side: BorderSide(color: Colors.blueAccent),
-  ),
-),
-SizedBox(height: 20),
+                Text("Select Category", style: _sectionTitleStyle),
+                DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  decoration: InputDecoration(border: OutlineInputBorder()),
+                  items: _categories.map((category) => DropdownMenuItem(value: category, child: Text(category))).toList(),
+                  onChanged: (value) => setState(() => _selectedCategory = value),
+                ),
+                SizedBox(height: 20),
 
-Text("Upload Documents", style: _sectionTitleStyle),
-SizedBox(height: 8),
-
-OutlinedButton.icon(
-  onPressed: _pickDocuments,
-  icon: Icon(Icons.upload_file, color: Colors.blueAccent),
-  label: Padding(
-    padding: EdgeInsets.symmetric(horizontal: 8), // Added spacing between icon and text
-    child: Text("Pick Documents"),
-  ),
-  style: OutlinedButton.styleFrom(
-    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20), // Added padding for proper spacing
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    side: BorderSide(color: Colors.blueAccent),
-  ),
-),
-
-                _buildDocumentPreview(),
+                _buildFilePicker("Upload Images", Icons.image, _pickImages),
+                _buildFilePicker("Upload Documents", Icons.upload_file, _pickDocuments),
                 SizedBox(height: 30),
 
-               Center(
-  child: ElevatedButton.icon(
-    onPressed: _uploadTest,
-    icon: Icon(Icons.cloud_upload, color: Colors.white), // White icon color
-    label: Text(
-      "Upload Test",
-      style: TextStyle(color: Colors.white), // White text color
-    ),
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 30),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      backgroundColor: Colors.blueAccent,
-      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-    ),
-  ),
-),
-
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _uploadTest,
+                    icon: Icon(Icons.cloud_upload),
+                    label: Text("Upload Test"),
+                  ),
+                ),
               ],
             ),
           ),
@@ -284,55 +240,24 @@ OutlinedButton.icon(
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildFilePicker(String label, IconData icon, VoidCallback onPressed) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+    );
+  }
+
+  final TextStyle _sectionTitleStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
+   Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType keyboardType = TextInputType.text}) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        prefixIcon: Icon(icon),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
-
-  Widget _buildImagePreview() {
-    if (_selectedImages.isEmpty) return SizedBox.shrink();
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: _selectedImages.map((img) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.file(img, width: 80, height: 80, fit: BoxFit.cover),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildDocumentPreview() {
-    if (_selectedDocuments.isEmpty) return SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: _selectedDocuments.map((doc) {
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              Icon(Icons.insert_drive_file, color: Colors.blueAccent),
-              SizedBox(width: 8),
-              Expanded(child: Text(basename(doc.path), overflow: TextOverflow.ellipsis)),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  final TextStyle _sectionTitleStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent);
-  final ButtonStyle _buttonStyle = OutlinedButton.styleFrom(
-    padding: EdgeInsets.symmetric(vertical: 12),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    side: BorderSide(color: Colors.blueAccent),
-  );
 }

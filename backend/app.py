@@ -6,7 +6,9 @@ from flask_cors import CORS
 from routes.user_routes import user_routes
 from routes.course_routes import course_bp
 from routes.batch_routes import batch_bp
-from routes.test_routes import test_routes  # Import test routes
+from routes.test_routes import test_routes 
+from routes.student_routes import student_routes
+from routes.parents_routes import parent_routes # Import test routes
 
 from config import Config
 
@@ -31,6 +33,8 @@ app.register_blueprint(user_routes, url_prefix='/api')
 app.register_blueprint(course_bp, url_prefix='/api')
 app.register_blueprint(batch_bp, url_prefix="/api")
 app.register_blueprint(test_routes, url_prefix='/api')
+app.register_blueprint(student_routes,url_prefix="/api")
+app.register_blueprint(parent_routes,url_prefix="/api")
 
 
 
