@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen>
       } else if (widget.role == "Student") {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ClassSelectionPage()));
       } else if (widget.role == "Parent") {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ParentsDashboardScreen()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  ParentsDashboardScreen()));
       } else {
         _showErrorDialog("Invalid role. Please try again.");
       }

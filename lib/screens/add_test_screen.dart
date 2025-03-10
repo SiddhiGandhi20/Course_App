@@ -19,17 +19,17 @@ class _AddTestScreenState extends State<AddTestScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   
-  List<Map<String, dynamic>> _selectedImages = []; // Store images as {name, bytes}
-  List<Map<String, dynamic>> _selectedDocuments = []; // Store docs as {name, bytes}
+  final List<Map<String, dynamic>> _selectedImages = []; // Store images as {name, bytes}
+  final List<Map<String, dynamic>> _selectedDocuments = []; // Store docs as {name, bytes}
   String? _selectedCategory;
   
   final List<String> _categories = ['5th Class', '6th Class', '7th Class'];
 
   Future<void> _pickImages() async {
     final ImagePicker picker = ImagePicker();
-    final List<XFile>? pickedFiles = await picker.pickMultiImage();
+    final List<XFile> pickedFiles = await picker.pickMultiImage();
 
-    if (pickedFiles != null && mounted) {
+    if (mounted) {
       List<Map<String, dynamic>> images = await Future.wait(pickedFiles.map((file) async {
         Uint8List bytes = await file.readAsBytes();
         return {'name': basename(file.path), 'bytes': bytes};

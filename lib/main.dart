@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(role: ""),
           '/teacher_dashboard': (context) => const TeacherDashboard(),
           '/class_selection': (context) => const ClassSelectionPage(),
-          '/parent_dashboard': (context) => const ParentsDashboardScreen(),
+        '/parent_dashboard': (context) => ParentsDashboardScreen(),
           // '/tests': (context) => const TestsScreen(), // Uncomment if TestsScreen exists
         },
       ),

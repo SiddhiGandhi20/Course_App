@@ -1,60 +1,43 @@
 from flask import Blueprint, request, jsonify
 from config import db
-from bson import ObjectId
+from models.parents_model import ParentModel  # Import ParentModel
 
+# Create Blueprint
 parent_routes = Blueprint("parent_routes", __name__)
+parent_model = ParentModel(db)  # Initialize ParentModel
 
-# Link a student to the parent's account
-from flask import Blueprint, request, jsonify
-from config import db
-from bson import ObjectId
-
-parent_routes = Blueprint("parent_routes", __name__)
-
-# Link a student to the parent's account
-from flask import Blueprint, request, jsonify
-from config import db
-from bson import ObjectId
-
-parent_routes = Blueprint("parent_routes", __name__)
-
-# Link a student to the parent's account
-from flask import Blueprint, request, jsonify
-from config import db
-from bson import ObjectId
-
-parent_routes = Blueprint("parent_routes", __name__)
-
-# Link a student (store only student IDs)
 @parent_routes.route("/parent/link-student", methods=["POST"])
 def link_student():
+    """API to link a student to a parent."""
     data = request.json
-    student_id = data.get("student_id")
+    parent_mobile = data.get("parent_mobile")
+    student_mobile = data.get("student_mobile")
 
-    # Validate input
-    if not student_id:
-        return jsonify({"error": "Student ID is required"}), 400
+    if not parent_mobile or not student_mobile:
+        return jsonify({"error": "❌ Parent and Student Mobile Numbers are required"}), 400
 
-    try:
-        student_obj_id = ObjectId(student_id)
-    except Exception:
-        return jsonify({"error": "Invalid Student ID"}), 400
+    result = parent_model.link_student(parent_mobile, student_mobile)
+    return jsonify(result), 200 if "message" in result else 400
 
-    # Fetch student details from the students collection
-    student = db.registration.find_one({"_id": student_obj_id}, {"full_name": 1, "mobile_number": 1})
+@parent_routes.route("/parent/unlink-student", methods=["POST"])
+def unlink_student():
+    """API to unlink a student from a parent."""
+    data = request.json
+    parent_mobile = data.get("parent_mobile")
+    student_mobile = data.get("student_mobile")
 
-    if not student:
-        return jsonify({"error": "Student not found"}), 404
+    if not parent_mobile or not student_mobile:
+        return jsonify({"error": "❌ Parent and Student Mobile Numbers are required"}), 400
 
-    # Store linked student details in the database
-    db.linked_students.update_one(
-        {"student_id": student_obj_id},
-        {"$set": {
-            "student_id": student_obj_id,
-            "full_name": student.get("full_name", "N/A"),
-            "mobile_number": student.get("mobile_number", "N/A"),
-        }},
-        upsert=True
-    )
+    result = parent_model.unlink_student(parent_mobile, student_mobile)
+    return jsonify(result), 200 if "message" in result else 400
 
-    return jsonify({"message": "Student linked successfully!"}), 200
+@parent_routes.route("/parent/get-linked-students/<parent_mobile>", methods=["GET"])
+def get_linked_students(parent_mobile):
+    """API to get all linked students for a parent."""
+    result = parent_model.get_linked_students(parent_mobile)
+
+    if "error" in result:
+        return jsonify({"error": result["error"]}), 400  # Bad Request for invalid inputs
+
+    return jsonify({"linked_students": result.get("linked_students", [])}), 200  # Always return a list

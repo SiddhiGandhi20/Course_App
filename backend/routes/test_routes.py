@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, send_from_directory
 from bson import ObjectId
 from werkzeug.utils import secure_filename
 import os
-from models.test_model import tests_collection, purchases_collection
+from models.test_model import tests_collection, purchases_collection, registration_collection
 
 test_routes = Blueprint("test_routes", __name__)
 
@@ -147,6 +147,53 @@ def pay_test():
 
     return jsonify({"message": "Payment Failed"}), 400
 
+# 🚀 Fetch purchased tests for a specific user or mobile number
+@test_routes.route('/get-purchased-tests/<user_id>', methods=['GET'])
+def get_purchased_tests(user_id):
+    print(f"Received identifier: {user_id}")
+
+    try:
+        user_registration = registration_collection.find_one({"_id": ObjectId(user_id)}, {"_id": 0, "mobile_number": 1})
+    except Exception as e:
+        print(f"Error fetching user: {e}")
+        return jsonify({"message": "Invalid user ID"}), 400
+
+    print(f"User registration data: {user_registration}")
+
+    if not user_registration:
+        return jsonify({"message": "User not found"}), 404
+
+    # Query purchases using user_id
+    user_purchases = purchases_collection.find_one(
+        {"user_id": user_id},  
+        {"_id": 0, "tests": 1}  
+    )
+
+    print(f"User purchases data: {user_purchases}")
+
+    if not user_purchases or not user_purchases.get("tests"):
+        return jsonify({"message": "No purchased tests found"}), 404
+
+    try:
+        purchased_tests = list(tests_collection.find(
+            {"_id": {"$in": [ObjectId(test_id) for test_id in user_purchases["tests"]]}},  
+            {"_id": 1, "title": 1, "description": 1, "price": 1, "images": 1, "documents": 1}
+        ))
+
+        print(f"Purchased tests: {purchased_tests}")
+
+    except Exception as e:
+        print(f"Error fetching purchased tests: {e}")
+        return jsonify({"message": "Failed to fetch purchased tests"}), 500
+
+    # Convert ObjectId to string and format images/documents URLs
+    for test in purchased_tests:
+        test["_id"] = str(test["_id"])
+        test["images"] = [request.host_url + "uploads/tests/images/" + img for img in test.get("images", [])]
+        test["documents"] = [request.host_url + "uploads/tests/documents/" + doc for doc in test.get("documents", [])]
+
+    return jsonify(purchased_tests), 200
+
 # 🚀 Serve Images
 @test_routes.route('/uploads/tests/images/<filename>')
 def get_image(filename):
@@ -156,4 +203,3 @@ def get_image(filename):
 @test_routes.route('/uploads/tests/documents/<filename>')
 def get_document(filename):
     return send_from_directory(DOCUMENT_FOLDER, filename)
-

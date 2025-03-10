@@ -50,6 +50,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final bool isLoggedIn = prefs.getBool("is_logged_in") ?? false;
     final String role = prefs.getString("role") ?? "";
+    final String? parentId = prefs.getString("parent_id"); // Retrieve parent ID from storage
 
     Widget nextScreen;
 
@@ -59,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       } else if (role == "Student") {
         nextScreen = ClassSelectionPage();
       } else {
-        nextScreen = ParentsDashboardScreen();
+        nextScreen = ParentsDashboardScreen(); // Use retrieved parentId
       }
     } else {
       nextScreen = RoleSelectionScreen();
